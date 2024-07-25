@@ -1,1 +1,1 @@
-# SportsConnect
+# SportsConnect EAFIT
