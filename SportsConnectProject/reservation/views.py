@@ -1,5 +1,10 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 # Create your views here.
+
+from .models import Facilities
 def home(request):
-    return HttpResponse('<h1> Welcome to SportsConnect</h1>')
+
+    facilities = Facilities.objects.all()
+
+    return render(request, 'home.html', {'facilities': facilities})

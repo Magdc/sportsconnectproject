@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facilities</title>
+    <link href="https://bootswatch.com/5/darkly/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        .card-img-top {
+            height: 200px; 
+            object-fit: cover; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="card text-center mb-3">
+            <div class="card-body">
+                <h1 class="card-title">SportsConnect</h1>
+            </div>
+        </div>
+
+        <div class="row">
+            {% for facility in facilities %}
+                <div class="col-md-4 mb-3">
+                    <div class="card">
+                        <img src="{{ facility.image.url }}" class="card-img-top" alt="{{ facility.name }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ facility.name }}</h5>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-VOLgN6fbpTbDXPeJm04IGFsjB5WlwF6kKm5pzoS7Vt5CayQPSiD3l0pvn5sKJdFQ" crossorigin="anonymous"></script>
+</body>
+</html>
