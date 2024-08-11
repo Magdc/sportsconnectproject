@@ -22,12 +22,20 @@
         </div>
 
         <div class="row">
-            {% for facility in facilities %}
+            {% for facility_info in facilities_with_availability %}
                 <div class="col-md-4 mb-3">
                     <div class="card">
-                        <img src="{{ facility.image.url }}" class="card-img-top" alt="{{ facility.name }}">
+                        <img src="{{ facility_info.facility.image.url }}" class="card-img-top" alt="{{ facility_info.facility.name }}">
                         <div class="card-body">
-                            <h5 class="card-title">{{ facility.name }}</h5>
+                            <h5 class="card-title">{{ facility_info.facility.name }}</h5>
+
+                            <!-- Desplegable para horarios -->
+                            <label for="timeSlotSelect">Available Times</label>
+                            <select class="form-select" id="timeSlotSelect">
+                                {% for slot in facility_info.availability %}
+                                    <option value="{{ slot.id }}">{{ slot.time_slot|time:"H:i" }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                     </div>
                 </div>

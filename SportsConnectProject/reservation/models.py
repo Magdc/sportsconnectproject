@@ -1,4 +1,5 @@
 from django.db import models
+from datetime import time
 
 # Create your models here.
 
@@ -29,9 +30,14 @@ class Availability(models.Model):
             (6, 'Sunday')
         ]
     )
-    start = models.TimeField()
-    end = models.TimeField()
-    available = models.BooleanField(default=True)
+    time_slot = models.TimeField()  # Define a single time slot (e.g., 09:00)
+
+    def generate_time_slots(self):
+        # Generate time slots from 5am to 5pm
+        slots = []
+        for hour in range(5, 18):
+            slots.append(time(hour=hour, minute=0))
+        return slots
 
 class Reservation(models.Model):
     facilities = models.ForeignKey(Facilities, on_delete=models.CASCADE)
