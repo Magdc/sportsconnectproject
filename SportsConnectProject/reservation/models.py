@@ -8,7 +8,7 @@ class User(models.Model):
     lastname1 = models.CharField(max_length=20)
     lastname2 = models.CharField(max_length=20)
     email = models.EmailField(max_length=50)
-    phone = models.IntegerField(max_length=10)
+    phone = models.IntegerField()
 
 
 class Facilities(models.Model):
