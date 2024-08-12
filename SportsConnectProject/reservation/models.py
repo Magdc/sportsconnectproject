@@ -1,5 +1,6 @@
 from django.db import models
 from datetime import time
+from django.utils import timezone
 
 # Create your models here.
 
@@ -19,30 +20,22 @@ class Facilities(models.Model):
 
 class Availability(models.Model):
     facilities = models.ForeignKey(Facilities, null=True, on_delete=models.CASCADE)
-    day = models.IntegerField(
-        choices=[
-            (0, 'Monday'),
-            (1, 'Tuesday'),
-            (2, 'Wednesday'),
-            (3, 'Thursday'),
-            (4, 'Friday'),
-            (5, 'Saturday'),
-            (6, 'Sunday')
-        ]
-    )
-    time_slot = models.TimeField()  # Define a single time slot (e.g., 09:00)
+    date = models.DateField(default=timezone.now)
+    time_slot = models.TimeField() 
+
+    class Meta:
+        unique_together = ('facilities', 'date', 'time_slot')
 
     def generate_time_slots(self):
         # Generate time slots from 5am to 5pm
         slots = []
-        for hour in range(5, 18):
+        for hour in range(6, 21):
             slots.append(time(hour=hour, minute=0))
         return slots
 
 class Reservation(models.Model):
     facilities = models.ForeignKey(Facilities, on_delete=models.CASCADE)
     availability = models.ForeignKey(Availability, on_delete=models.CASCADE)
-    date = models.DateField()
-    start = models.TimeField
-    end = models.TimeField()
+    date = models.DateField(null=True, blank=True)
+     
 

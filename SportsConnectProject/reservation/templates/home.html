@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,11 +9,12 @@
 
     <style>
         .card-img-top {
-            height: 200px; 
-            object-fit: cover; 
+            height: 200px;
+            object-fit: cover;
         }
     </style>
 </head>
+
 <body>
     <div class="container mt-5">
         <div class="card text-center mb-3">
@@ -21,28 +23,120 @@
             </div>
         </div>
 
+
         <div class="row">
             {% for facility_info in facilities_with_availability %}
-                <div class="col-md-4 mb-3">
-                    <div class="card">
-                        <img src="{{ facility_info.facility.image.url }}" class="card-img-top" alt="{{ facility_info.facility.name }}">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ facility_info.facility.name }}</h5>
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <img src="{{ facility_info.facility.image.url }}" class="card-img-top"
+                        alt="{{ facility_info.facility.name }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ facility_info.facility.name }}</h5>
+                        <label for="datePicker_{{ facility_info.facility.idFacility }}" class="form-label">Select
+                            Date</label>
+                        <input type="text" class="form-control datePicker"
+                            id="datePicker_{{ facility_info.facility.idFacility }}"
+                            data-id-Facility="{{ facility_info.facility.idFacility }}" placeholder="Select a date">
 
-                            <!-- Desplegable para horarios -->
-                            <label for="timeSlotSelect">Available Times</label>
-                            <select class="form-select" id="timeSlotSelect">
-                                {% for slot in facility_info.availability %}
-                                    <option value="{{ slot.id }}">{{ slot.time_slot|time:"H:i" }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                        <!-- Desplegable para horarios -->
+                        <label for="timeSlotSelect_{{ facility_info.facility.idFacility }}">Available Times</label>
+                        <select class="form-select timeSlotSelect"
+                            id="timeSlotSelect_{{ facility_info.facility.idFacility }}">
+                            {% for slot in facility_info.availability %}
+                            <option value="{{ slot.time_slot|time:" H:i" }}">{{ slot.time_slot|time:"H:i" }}</option>
+                            {% endfor %}
+                        </select>
+
+                        <button class="btn btn-primary reserve-btn"
+                            data-id-Facility="{{ facility_info.facility.idFacility }}">Reservar</button>
                     </div>
                 </div>
+            </div>
             {% endfor %}
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-VOLgN6fbpTbDXPeJm04IGFsjB5WlwF6kKm5pzoS7Vt5CayQPSiD3l0pvn5sKJdFQ" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-VOLgN6fbpTbDXPeJm04IGFsjB5WlwF6kKm5pzoS7Vt5CayQPSiD3l0pvn5sKJdFQ"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.9.0/dist/js/bootstrap-datepicker.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('.datePicker').datepicker({
+                format: 'yyyy-mm-dd',
+                startDate: new Date(),
+                autoclose: true
+            }).on('changeDate', function () {
+                var selectedDate = $(this).val();
+                var facilities_id = $(this).data('id-facility');
+                var timeSlotSelect = $('#timeSlotSelect_' + facilities_id);
+
+                $.ajax({
+                    url: '{% url "get_availability_by_date" %}',
+                    type: 'POST',
+                    data: {
+                        'date': selectedDate,
+                        'facilities_id': facilities_id,
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    },
+                    success: function (response) {
+                        // Limpiar el desplegable de horarios
+                        timeSlotSelect.empty();
+
+                        // Añadir las nuevas opciones de horarios al desplegable
+                        response.availability.forEach(function (slot) {
+                            timeSlotSelect.append('<option value="' + slot.id + '">' + slot.time_slot + '</option>');
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error fetching availability:', error);
+                    }
+                });
+            });
+        });
+    </script>
+
+    <!-- Script para manejar la reserva -->
+    <script>
+        $(document).ready(function () {
+            $('.reserve-btn').on('click', function () {
+                var facilities_id = $(this).data('id-facility');
+                var date = $('#datePicker_' + facilities_id).val();
+                var time_slot = $('#timeSlotSelect_' + facilities_id).val(); // Se asume que el valor ya está en HH:MM
+
+                if (date && time_slot) {
+                    $.ajax({
+                        url: '{% url "reservate" %}',
+                        type: 'POST',
+                        data: {
+                            'facilities_id': facilities_id,
+                            'date': date,
+                            'time_slot': time_slot,  // Enviar en formato HH:MM
+                            'csrfmiddlewaretoken': '{{ csrf_token }}'
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                alert('Reserva realizada con éxito.');
+                            } else {
+                                alert('No se pudo realizar la reserva: ' + response.error);
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error('Error en la reserva:', error);
+                            alert('Ocurrió un error al intentar realizar la reserva.');
+                        }
+                    });
+                } else {
+                    alert('Por favor, selecciona una fecha y un horario.');
+                }
+            });
+        });
+    </script>
+
+
+
+
 </body>
+
 </html>

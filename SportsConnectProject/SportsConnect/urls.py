@@ -23,7 +23,9 @@ from django.conf import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('',reservationViews.home)
+    path('',reservationViews.home),
+    path('get_availability_by_date/', reservationViews.get_availability_by_date, name='get_availability_by_date'),
+    path('reservate/', reservationViews.reservate, name='reservate')
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

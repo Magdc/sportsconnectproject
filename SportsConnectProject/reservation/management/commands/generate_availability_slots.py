@@ -13,11 +13,11 @@ class Command(BaseCommand):
             # Verificar si los horarios ya existen para evitar duplicados
             existing_slots = Availability.objects.filter(
                 facilities=availability.facilities,
-                day=availability.day
+                date=availability.date
             ).values_list('time_slot', flat=True)
 
             start_hour = 5
-            end_hour = 17  # 5pm in 24-hour format
+            end_hour = 21  # 5pm in 24-hour format
 
             # Crear los horarios faltantes
             for hour in range(start_hour, end_hour + 1):
@@ -25,7 +25,7 @@ class Command(BaseCommand):
                 if time_slot not in existing_slots:
                     Availability.objects.create(
                         facilities=availability.facilities,
-                        day=availability.day,
+                        date=availability.date,
                         time_slot=time_slot
                     )
         
