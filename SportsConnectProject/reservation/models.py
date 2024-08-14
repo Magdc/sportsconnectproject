@@ -12,7 +12,6 @@ class User(models.Model):
     email = models.EmailField(max_length=50)
     phone = models.IntegerField()
 
-
 class Facilities(models.Model):
     idFacility = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
@@ -37,5 +36,4 @@ class Reservation(models.Model):
     facilities = models.ForeignKey(Facilities, on_delete=models.CASCADE)
     availability = models.ForeignKey(Availability, on_delete=models.CASCADE)
     date = models.DateField(null=True, blank=True)
-     
 

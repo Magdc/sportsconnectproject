@@ -60,4 +60,15 @@ def reservate(request):
         
         except Availability.DoesNotExist:
             return JsonResponse({'success': False, 'Error': 'Availability not found.'})
+        
+def delete_reservation(request):
+    if request.method == 'POST':
+        idReservation = request.POST.get('idReservation')
+        try:
+            reservation = Reservation.objects.get(id=idReservation)
+            reservation.delete()
+            return JsonResponse({'success': True})
+        except Reservation.DoesNotExist:
+            return JsonResponse({'success': False, 'Error': 'Reservation not found.'})
+    
 
