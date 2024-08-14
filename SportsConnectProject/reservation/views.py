@@ -28,36 +28,50 @@ def home(request):
 def get_availability_by_date(request):
     if request.method == 'POST':
         selected_date = request.POST.get('date')
-        idFacility = request.POST.get('facilities_id')
-        print(f"Selected Date: {selected_date}, Facility ID: {idFacility}")
+        idFacility = request.POST.get('idFacility')
+
 
         availability = Availability.objects.filter( facilities_id=idFacility, date=selected_date ).order_by('time_slot')
 
         availability_list = [{'id': slot.id, 'time_slot': slot.time_slot.strftime('%H:%M')} for slot in availability]
-        print("Availability List:", availability_list)
-    
+
         return JsonResponse({'availability': availability_list})
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
 def reservate(request):
     if request.method == 'POST':
-        idFacility = request.POST.get('idFacility')
+        idFacility = request.POST.get('facilities_id')
         date = request.POST.get('date')
         time_slot = request.POST.get('time_slot')
 
-        try:
-            # Ahora usando get para obtener una sola instancia
-            availability = Availability.objects.get(facilities_id=idFacility, date=date, time_slot=time_slot)
+        if time_slot and len(time_slot) == 5:  # Formato HH:MM
+            time_slot += ':00'  # Convertir a HH:MM:00
+            
+        print(f"Facility ID: {idFacility}")
+        print(f"Date: {date}")
+        print(f"Time Slot: {time_slot}")
 
-            # Verificamos si ya existe una reserva para esa disponibilidad
+        try:
+            # Obtener el objeto Availability basado en idFacility y la fecha
+            availability = Availability.objects.get(facilities_id=idFacility, date=date, time_slot = time_slot)
+
+            print(availability)
+
+            # Verificar si ya existe una reserva para esa disponibilidad
             if Reservation.objects.filter(availability=availability).exists():
-                return JsonResponse({'success': False, 'Error': 'This Schedule is already reserved'})
+                return JsonResponse({'success': False, 'error': 'This schedule is already reserved'})
             else:
                 # Crear la nueva reserva
                 new_reservation = Reservation.objects.create(facilities_id=idFacility, availability=availability, date=date)
                 return JsonResponse({'success': True})
         
         except Availability.DoesNotExist:
-            return JsonResponse({'success': False, 'Error': 'Availability not found.'})
+            return JsonResponse({'success': False, 'error': 'Availability not found.'})
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+
+    return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
+
 

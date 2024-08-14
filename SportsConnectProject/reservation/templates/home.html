@@ -43,10 +43,9 @@
                         <select class="form-select timeSlotSelect"
                             id="timeSlotSelect_{{ facility_info.facility.idFacility }}">
                             {% for slot in facility_info.availability %}
-                            <option value="{{ slot.time_slot|time:" H:i" }}">{{ slot.time_slot|time:"H:i" }}</option>
+                            <option value="{{ slot.time_slot |time:'H:i' }}">{{ slot.time_slot|time:"H:i" }}</option>
                             {% endfor %}
                         </select>
-
                         <button class="btn btn-primary reserve-btn"
                             data-id-Facility="{{ facility_info.facility.idFacility }}">Reservar</button>
                     </div>
@@ -72,15 +71,20 @@
                 var facilities_id = $(this).data('id-facility');
                 var timeSlotSelect = $('#timeSlotSelect_' + facilities_id);
 
+                console.log("Selected Date: " + selectedDate);
+                console.log("Facility ID: " + facilities_id);
+
                 $.ajax({
                     url: '{% url "get_availability_by_date" %}',
                     type: 'POST',
                     data: {
                         'date': selectedDate,
-                        'facilities_id': facilities_id,
+                        'idFacility': facilities_id,
                         'csrfmiddlewaretoken': '{{ csrf_token }}'
                     },
                     success: function (response) {
+                        console.log("Availability response:", response);
+
                         // Limpiar el desplegable de horarios
                         timeSlotSelect.empty();
 
@@ -95,43 +99,45 @@
                 });
             });
         });
+
     </script>
 
     <!-- Script para manejar la reserva -->
     <script>
-        $(document).ready(function () {
-            $('.reserve-btn').on('click', function () {
-                var facilities_id = $(this).data('id-facility');
-                var date = $('#datePicker_' + facilities_id).val();
-                var time_slot = $('#timeSlotSelect_' + facilities_id).val(); // Se asume que el valor ya está en HH:MM
+            $(document).ready(function () {
+                $('.reserve-btn').on('click', function () {
+                    var facilities_id = $(this).data('id-facility');
+                    var date = $('#datePicker_' + facilities_id).val();
+                    var time_slot = $('#timeSlotSelect_' + facilities_id + ' option:selected').text();
 
-                if (date && time_slot) {
-                    $.ajax({
-                        url: '{% url "reservate" %}',
-                        type: 'POST',
-                        data: {
-                            'facilities_id': facilities_id,
-                            'date': date,
-                            'time_slot': time_slot,  // Enviar en formato HH:MM
-                            'csrfmiddlewaretoken': '{{ csrf_token }}'
-                        },
-                        success: function (response) {
-                            if (response.success) {
-                                alert('Reserva realizada con éxito.');
-                            } else {
-                                alert('No se pudo realizar la reserva: ' + response.error);
+                    if (date && time_slot) {
+
+                        $.ajax({
+                            url: '{% url "reservate" %}',
+                            type: 'POST',
+                            data: {
+                                'facilities_id': facilities_id,
+                                'date': date,
+                                'time_slot': time_slot,  // Enviar en formato HH:MM
+                                'csrfmiddlewaretoken': '{{ csrf_token }}'
+                            },
+                            success: function (response) {
+                                if (response.success) {
+                                    alert('Reserva realizada con éxito.');
+                                } else {
+                                    alert('No se pudo realizar la reserva: ' + response.error);
+                                }
+                            },
+                            error: function (xhr, status, error) {
+                                console.error('Error en la reserva:', error);
+                                alert('Ocurrió un error al intentar realizar la reserva.');
                             }
-                        },
-                        error: function (xhr, status, error) {
-                            console.error('Error en la reserva:', error);
-                            alert('Ocurrió un error al intentar realizar la reserva.');
-                        }
-                    });
-                } else {
-                    alert('Por favor, selecciona una fecha y un horario.');
-                }
+                        });
+                    } else {
+                        alert('Por favor, selecciona una fecha y un horario.');
+                    }
+                });
             });
-        });
     </script>
 
 
