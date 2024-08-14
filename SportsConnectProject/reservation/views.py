@@ -65,25 +65,21 @@ def reservate(request):
             else:
                 # Crear la nueva reserva
                 new_reservation = Reservation.objects.create(facilities_id=idFacility, availability=availability, date=date)
-                return JsonResponse({'success': True})
+                # Retornar el id de la reserva
+                return JsonResponse({'success': True, 'reservation_id': new_reservation.id})
         
         except Availability.DoesNotExist:
             return JsonResponse({'success': False, 'Error': 'Availability not found.'})
 
-from django.http import JsonResponse
-from .models import Reservation
-from django.views.decorators.csrf import csrf_exempt
-
-@csrf_exempt
 def delete_reservation(request):
     if request.method == 'POST':
         reservation_id = request.POST.get('reservation_id')
 
         try:
-            # Retrieve the reservation by ID
+            # obtener reserva basada en el ID
             reservation = Reservation.objects.get(id=reservation_id)
 
-            # Delete the reservation
+            # eliminar la reserva
             reservation.delete()
 
             return JsonResponse({'success': True, 'message': 'Reservation deleted successfully'})
