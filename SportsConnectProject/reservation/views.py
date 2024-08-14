@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from .models import Facilities, Availability, Reservation
 from django.views.decorators.csrf import csrf_exempt
+import json
 
 def home(request):
     facilities = Facilities.objects.all()
@@ -68,4 +69,27 @@ def reservate(request):
         
         except Availability.DoesNotExist:
             return JsonResponse({'success': False, 'Error': 'Availability not found.'})
+
+from django.http import JsonResponse
+from .models import Reservation
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
+def delete_reservation(request):
+    if request.method == 'POST':
+        reservation_id = request.POST.get('reservation_id')
+
+        try:
+            # Retrieve the reservation by ID
+            reservation = Reservation.objects.get(id=reservation_id)
+
+            # Delete the reservation
+            reservation.delete()
+
+            return JsonResponse({'success': True, 'message': 'Reservation deleted successfully'})
+
+        except Reservation.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Reservation not found'})
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)
 
