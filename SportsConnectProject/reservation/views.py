@@ -31,10 +31,17 @@ def get_availability_by_date(request):
         selected_date = request.POST.get('date')
         idFacility = request.POST.get('idFacility')
 
+        # Filtrar disponibilidad para la fecha seleccionada y la instalación específica
+        availability = Availability.objects.filter(facilities_id=idFacility, date=selected_date).order_by('time_slot')
 
-        availability = Availability.objects.filter( facilities_id=idFacility, date=selected_date ).order_by('time_slot')
+        # Obtener los horarios ya reservados para esa fecha y esa instalación
+        reserved_slots = Reservation.objects.filter(availability__facilities_id=idFacility, date=selected_date).values_list('availability__time_slot', flat=True)
 
-        availability_list = [{'id': slot.id, 'time_slot': slot.time_slot.strftime('%H:%M')} for slot in availability]
+        # Excluir los horarios ya reservados de la lista de disponibilidad
+        available_slots = availability.exclude(time_slot__in=reserved_slots).distinct()
+
+        # Crear una lista de la disponibilidad restante sin duplicados
+        availability_list = [{'id': slot.id, 'time_slot': slot.time_slot.strftime('%H:%M')} for slot in available_slots]
 
         return JsonResponse({'availability': availability_list})
 
@@ -46,18 +53,12 @@ def reservate(request):
         date = request.POST.get('date')
         time_slot = request.POST.get('time_slot')
 
-        if time_slot and len(time_slot) == 5:  # Formato HH:MM
+        if time_slot and len(time_slot) == 5:  # Verificar que el formato del tiempo sea HH:MM
             time_slot += ':00'  # Convertir a HH:MM:00
-            
-        print(f"Facility ID: {idFacility}")
-        print(f"Date: {date}")
-        print(f"Time Slot: {time_slot}")
 
         try:
-            # Obtener el objeto Availability basado en idFacility y la fecha
-            availability = Availability.objects.get(facilities_id=idFacility, date=date, time_slot = time_slot)
-
-            print(availability)
+            # Intentar obtener la disponibilidad basada en la instalación, fecha y hora seleccionada
+            availability = Availability.objects.get(facilities_id=idFacility, date=date, time_slot=time_slot)
 
             # Verificar si ya existe una reserva para esa disponibilidad
             if Reservation.objects.filter(availability=availability).exists():
@@ -65,11 +66,12 @@ def reservate(request):
             else:
                 # Crear la nueva reserva
                 new_reservation = Reservation.objects.create(facilities_id=idFacility, availability=availability, date=date)
-                # Retornar el id de la reserva
                 return JsonResponse({'success': True, 'reservation_id': new_reservation.id})
         
         except Availability.DoesNotExist:
-            return JsonResponse({'success': False, 'Error': 'Availability not found.'})
+            return JsonResponse({'success': False, 'error': 'Availability not found.'})
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)
 
 def delete_reservation(request):
     if request.method == 'POST':
