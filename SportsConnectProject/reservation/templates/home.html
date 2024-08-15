@@ -122,8 +122,9 @@
                                 'csrfmiddlewaretoken': '{{ csrf_token }}'
                             },
                             success: function (response) {
+                                console.log('Reserva response:', response);
                                 if (response.success) {
-                                    alert('Reserva realizada con éxito.');
+                                    alert('Reserva realizada con éxito. ID de reserva: ' + response.reservation_id);
                                 } else {
                                     alert('No se pudo realizar la reserva: ' + response.error);
                                 }
