@@ -3,6 +3,8 @@ from django.http import JsonResponse
 from .models import Facilities, Availability, Reservation
 from django.views.decorators.csrf import csrf_exempt
 import json
+from datetime import timedelta
+from django.utils import timezone
 
 def home(request):
     facilities = Facilities.objects.all()
@@ -31,10 +33,28 @@ def get_availability_by_date(request):
         selected_date = request.POST.get('date')
         idFacility = request.POST.get('idFacility')
 
+        # Obtener la fecha de hoy
+        today = timezone.now().date()
 
-        availability = Availability.objects.filter( facilities_id=idFacility, date=selected_date ).order_by('time_slot')
+        # Generar disponibilidad para los próximos 7 días si no existe
+        facility = Facilities.objects.get(idFacility=idFacility)
+        for i in range(7):
+            date_to_check = today + timedelta(days=i)
+            for time_slot in Availability.generate_time_slots(self=facility):  # Utiliza el método del modelo
+                # Crear disponibilidad si no existe ya
+                Availability.objects.get_or_create(facilities=facility, date=date_to_check, time_slot=time_slot)
 
-        availability_list = [{'id': slot.id, 'time_slot': slot.time_slot.strftime('%H:%M')} for slot in availability]
+        # Filtrar disponibilidad para la fecha seleccionada y la instalación específica
+        availability = Availability.objects.filter(facilities_id=idFacility, date=selected_date).order_by('time_slot')
+
+        # Obtener los horarios ya reservados para esa fecha y esa instalación
+        reserved_slots = Reservation.objects.filter(availability__facilities_id=idFacility, date=selected_date).values_list('availability__time_slot', flat=True)
+
+        # Excluir los horarios ya reservados de la lista de disponibilidad
+        available_slots = availability.exclude(time_slot__in=reserved_slots).distinct()
+
+        # Crear una lista de la disponibilidad restante sin duplicados
+        availability_list = [{'id': slot.id, 'time_slot': slot.time_slot.strftime('%H:%M')} for slot in available_slots]
 
         return JsonResponse({'availability': availability_list})
 
@@ -46,18 +66,12 @@ def reservate(request):
         date = request.POST.get('date')
         time_slot = request.POST.get('time_slot')
 
-        if time_slot and len(time_slot) == 5:  # Formato HH:MM
+        if time_slot and len(time_slot) == 5:  # Verificar que el formato del tiempo sea HH:MM
             time_slot += ':00'  # Convertir a HH:MM:00
-            
-        print(f"Facility ID: {idFacility}")
-        print(f"Date: {date}")
-        print(f"Time Slot: {time_slot}")
 
         try:
-            # Obtener el objeto Availability basado en idFacility y la fecha
-            availability = Availability.objects.get(facilities_id=idFacility, date=date, time_slot = time_slot)
-
-            print(availability)
+            # Intentar obtener la disponibilidad basada en la instalación, fecha y hora seleccionada
+            availability = Availability.objects.get(facilities_id=idFacility, date=date, time_slot=time_slot)
 
             # Verificar si ya existe una reserva para esa disponibilidad
             if Reservation.objects.filter(availability=availability).exists():
@@ -65,27 +79,30 @@ def reservate(request):
             else:
                 # Crear la nueva reserva
                 new_reservation = Reservation.objects.create(facilities_id=idFacility, availability=availability, date=date)
-                # Retornar el id de la reserva
+                
+                # Retornar el id de la reserva recién creada
                 return JsonResponse({'success': True, 'reservation_id': new_reservation.id})
         
         except Availability.DoesNotExist:
-            return JsonResponse({'success': False, 'Error': 'Availability not found.'})
+            return JsonResponse({'success': False, 'error': 'Availability not found.'})
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)
 
 def delete_reservation(request):
     if request.method == 'POST':
         reservation_id = request.POST.get('reservation_id')
 
         try:
-            # obtener reserva basada en el ID
+            # Obtener la reserva basada en el ID
             reservation = Reservation.objects.get(id=reservation_id)
 
-            # eliminar la reserva
+            # Eliminar la reserva
             reservation.delete()
 
-            return JsonResponse({'success': True, 'message': 'Reservation deleted successfully'})
+            return JsonResponse({'success': True, 'message': 'Reserva eliminada correctamente.'})
 
         except Reservation.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Reservation not found'})
+            return JsonResponse({'success': False, 'error': 'Reserva no encontrada.'})
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
 

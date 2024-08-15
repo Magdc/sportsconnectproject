@@ -1,4 +1,4 @@
-from django.db.models.signals import post_save
+"""from django.db.models.signals import post_save
 from django.dispatch import receiver
 from .models import Availability, Facilities
 from datetime import time, timedelta
@@ -22,4 +22,4 @@ def assign_time_slots(sender, instance, created, **kwargs):
                     facilities=instance,
                     date=target_date,
                     time_slot=time_slot
-                )
+                ) """
