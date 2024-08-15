@@ -3,6 +3,8 @@ from django.http import JsonResponse
 from .models import Facilities, Availability, Reservation
 from django.views.decorators.csrf import csrf_exempt
 import json
+from datetime import timedelta
+from django.utils import timezone
 
 def home(request):
     facilities = Facilities.objects.all()
@@ -30,6 +32,17 @@ def get_availability_by_date(request):
     if request.method == 'POST':
         selected_date = request.POST.get('date')
         idFacility = request.POST.get('idFacility')
+
+        # Obtener la fecha de hoy
+        today = timezone.now().date()
+
+        # Generar disponibilidad para los próximos 7 días si no existe
+        facility = Facilities.objects.get(idFacility=idFacility)
+        for i in range(7):
+            date_to_check = today + timedelta(days=i)
+            for time_slot in Availability.generate_time_slots(self=facility):  # Utiliza el método del modelo
+                # Crear disponibilidad si no existe ya
+                Availability.objects.get_or_create(facilities=facility, date=date_to_check, time_slot=time_slot)
 
         # Filtrar disponibilidad para la fecha seleccionada y la instalación específica
         availability = Availability.objects.filter(facilities_id=idFacility, date=selected_date).order_by('time_slot')
@@ -66,6 +79,8 @@ def reservate(request):
             else:
                 # Crear la nueva reserva
                 new_reservation = Reservation.objects.create(facilities_id=idFacility, availability=availability, date=date)
+                
+                # Retornar el id de la reserva recién creada
                 return JsonResponse({'success': True, 'reservation_id': new_reservation.id})
         
         except Availability.DoesNotExist:
@@ -78,16 +93,16 @@ def delete_reservation(request):
         reservation_id = request.POST.get('reservation_id')
 
         try:
-            # obtener reserva basada en el ID
+            # Obtener la reserva basada en el ID
             reservation = Reservation.objects.get(id=reservation_id)
 
-            # eliminar la reserva
+            # Eliminar la reserva
             reservation.delete()
 
-            return JsonResponse({'success': True, 'message': 'Reservation deleted successfully'})
+            return JsonResponse({'success': True, 'message': 'Reserva eliminada correctamente.'})
 
         except Reservation.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Reservation not found'})
+            return JsonResponse({'success': False, 'error': 'Reserva no encontrada.'})
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
 

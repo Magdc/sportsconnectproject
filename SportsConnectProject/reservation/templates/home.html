@@ -23,7 +23,6 @@
             </div>
         </div>
 
-
         <div class="row">
             {% for facility_info in facilities_with_availability %}
             <div class="col-md-4 mb-3">
@@ -32,8 +31,7 @@
                         alt="{{ facility_info.facility.name }}">
                     <div class="card-body">
                         <h5 class="card-title">{{ facility_info.facility.name }}</h5>
-                        <label for="datePicker_{{ facility_info.facility.idFacility }}" class="form-label">Select
-                            Date</label>
+                        <label for="datePicker_{{ facility_info.facility.idFacility }}" class="form-label">Select Date</label>
                         <input type="text" class="form-control datePicker"
                             id="datePicker_{{ facility_info.facility.idFacility }}"
                             data-id-Facility="{{ facility_info.facility.idFacility }}" placeholder="Select a date">
@@ -48,6 +46,8 @@
                         </select>
                         <button class="btn btn-primary reserve-btn"
                             data-id-Facility="{{ facility_info.facility.idFacility }}">Reservar</button>
+                        <!-- Botón para cancelar la reserva -->
+                        <button id="cancelButton_{{ facility_info.facility.idFacility }}" class="btn btn-danger cancel-reservation-btn">Cancelar Reserva</button>
                     </div>
                 </div>
             </div>
@@ -98,51 +98,73 @@
                     }
                 });
             });
-        });
 
-    </script>
+            // Script para manejar la reserva
+            $('.reserve-btn').on('click', function () {
+                var facilities_id = $(this).data('id-facility');
+                var date = $('#datePicker_' + facilities_id).val();
+                var time_slot = $('#timeSlotSelect_' + facilities_id + ' option:selected').text();
 
-    <!-- Script para manejar la reserva -->
-    <script>
-            $(document).ready(function () {
-                $('.reserve-btn').on('click', function () {
-                    var facilities_id = $(this).data('id-facility');
-                    var date = $('#datePicker_' + facilities_id).val();
-                    var time_slot = $('#timeSlotSelect_' + facilities_id + ' option:selected').text();
-
-                    if (date && time_slot) {
-
-                        $.ajax({
-                            url: '{% url "reservate" %}',
-                            type: 'POST',
-                            data: {
-                                'facilities_id': facilities_id,
-                                'date': date,
-                                'time_slot': time_slot,  // Enviar en formato HH:MM
-                                'csrfmiddlewaretoken': '{{ csrf_token }}'
-                            },
-                            success: function (response) {
-                                console.log('Reserva response:', response);
-                                if (response.success) {
-                                    alert('Reserva realizada con éxito. ID de reserva: ' + response.reservation_id);
-                                } else {
-                                    alert('No se pudo realizar la reserva: ' + response.error);
-                                }
-                            },
-                            error: function (xhr, status, error) {
-                                console.error('Error en la reserva:', error);
-                                alert('Ocurrió un error al intentar realizar la reserva.');
+                if (date && time_slot) {
+                    $.ajax({
+                        url: '{% url "reservate" %}',
+                        type: 'POST',
+                        data: {
+                            'facilities_id': facilities_id,
+                            'date': date,
+                            'time_slot': time_slot,  // Enviar en formato HH:MM
+                            'csrfmiddlewaretoken': '{{ csrf_token }}'
+                        },
+                        success: function (response) {
+                            console.log('Reserva response:', response);
+                            if (response.success) {
+                                alert('Reserva realizada con éxito. ID de reserva: ' + response.reservation_id);
+                            } else {
+                                alert('No se pudo realizar la reserva: ' + response.error);
                             }
-                        });
-                    } else {
-                        alert('Por favor, selecciona una fecha y un horario.');
-                    }
-                });
+                        },
+                        error: function (xhr, status, error) {
+                            console.error('Error en la reserva:', error);
+                            alert('Ocurrió un error al intentar realizar la reserva.');
+                        }
+                    });
+                } else {
+                    alert('Por favor, selecciona una fecha y un horario.');
+                }
             });
+            //istens for clicks on a cancel button, prompts the user to enter a reservation ID, and then makes an AJAX POST
+            // request to the server to cancel that reservation
+            $('.cancel-reservation-btn').on('click', function () {
+                var reservation_id = prompt('Por favor, ingresa el ID de la reserva que deseas cancelar:');
+                
+                if (reservation_id) {
+                    // Realizar el AJAX request para cancelar la reserva
+                    $.ajax({
+                        url: '{% url "delete_reservation" %}',
+                        type: 'POST',
+                        data: {
+                            'reservation_id': reservation_id,
+                            'csrfmiddlewaretoken': '{{ csrf_token }}'
+                        },
+                        success: function (response) {
+                            console.log('Cancelación response:', response);
+                            if (response.success) {
+                                alert('Reserva cancelada con éxito.');
+                            } else {
+                                alert('No se pudo cancelar la reserva: ' + response.error);
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error('Error al cancelar la reserva:', error);
+                            alert('Ocurrió un error al intentar cancelar la reserva.');
+                        }
+                    });
+                } else {
+                    alert('No se proporcionó un ID de reserva válido.');
+                }
+            });
+        });
     </script>
-
-
-
 
 </body>
 

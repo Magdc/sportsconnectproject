@@ -22,6 +22,7 @@ class Availability(models.Model):
     date = models.DateField(default=timezone.now)
     time_slot = models.TimeField() 
 
+    # para una facility, en una date determinada, cada time_slot solo se puede asignar una vez
     class Meta:
         unique_together = ('facilities', 'date', 'time_slot')
 
