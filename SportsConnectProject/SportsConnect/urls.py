@@ -21,13 +21,15 @@ from reservation import views as reservationViews
 from django.conf.urls.static import static
 from django.conf import settings
 from reservation import views
+from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('',reservationViews.home),
+    path('',reservationViews.home, name='home'),
     path('get_availability_by_date/', reservationViews.get_availability_by_date, name='get_availability_by_date'),
     path('reservate/', reservationViews.reservate, name='reservate'),
     path('delete_reservation/', views.delete_reservation, name='delete_reservation'),
+    path('account/', include('accounts.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

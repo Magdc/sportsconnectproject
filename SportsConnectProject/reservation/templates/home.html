@@ -1,20 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Facilities</title>
-    <link href="https://bootswatch.com/5/darkly/bootstrap.min.css" rel="stylesheet">
-
-    <style>
-        .card-img-top {
-            height: 200px;
-            object-fit: cover;
-        }
-    </style>
-</head>
-
+{% extends 'base.html' %}
+{% block content %}
 <body>
     <div class="container mt-5">
         <div class="card text-center mb-3">
@@ -167,5 +155,5 @@
     </script>
 
 </body>
-
+{% endblock content %}
 </html>

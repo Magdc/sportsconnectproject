@@ -4,14 +4,6 @@ from django.utils import timezone
 
 # Create your models here.
 
-class User(models.Model):
-    idUser = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=20)
-    lastname1 = models.CharField(max_length=20)
-    lastname2 = models.CharField(max_length=20)
-    email = models.EmailField(max_length=50)
-    phone = models.IntegerField()
-
 class Facilities(models.Model):
     idFacility = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
