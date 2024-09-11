@@ -5,6 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from datetime import timedelta
 from django.utils import timezone
+from datetime import datetime
 
 #Método para mostrar la página principal
 def home(request):
@@ -143,4 +144,15 @@ def delete_reservation(request):
             return JsonResponse({'success': False, 'error': 'Reserva no encontrada.'})
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
+
+# Método para mostrar las reservas
+def historial(request):
+    user = request.user.idUser
+    reservas=Reservation.objects.filter(idUser=user)
+    fechahoy = datetime.now()
+    activas = reservas.filter(date__gte=fechahoy)
+    vencidas= reservas.filter(date__lt=fechahoy)
+    for i in reservas:
+        print(reservas)
+    return render(request, 'historial.html',{"activas":activas,"vencidas":vencidas})
 
