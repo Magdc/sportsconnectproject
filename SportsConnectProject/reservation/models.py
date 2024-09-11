@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 class Facilities(models.Model):
     idFacility = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
+    description = models.TextField(null=True, blank=True)
     image = models.ImageField(upload_to='reservation/facilities/')
     
     def __str__(self):

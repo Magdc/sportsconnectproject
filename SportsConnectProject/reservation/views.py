@@ -6,6 +6,7 @@ import json
 from datetime import timedelta
 from django.utils import timezone
 
+#Método para mostrar la página principal
 def home(request):
     facilities = Facilities.objects.all()
     facilities_with_availability = []
@@ -28,6 +29,7 @@ def home(request):
     return render(request, 'home.html', context)
 
 @csrf_exempt
+#Método para generar y obtener la disponibilidad de una instalación en una fecha específica
 def get_availability_by_date(request):
     if request.method == 'POST':
         selected_date = request.POST.get('date')
@@ -60,22 +62,15 @@ def get_availability_by_date(request):
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
-from django.http import JsonResponse
-from .models import Facilities, Availability, Reservation
-
-from django.http import JsonResponse
-from .models import Facilities, Availability, Reservation
-from django.utils import timezone
-from datetime import timedelta
-
+#Método para gestionar reservas
 def reservate(request):
     if request.method == 'POST':
-        idFacility = request.POST.get('facilities_id')  # Verificar que sea el nombre correcto en el formulario
+        idFacility = request.POST.get('facilities_id')
         date = request.POST.get('date')
         time_slot = request.POST.get('time_slot')
 
         if time_slot and len(time_slot) == 5:
-            time_slot += ':00'  # Convertir a formato HH:MM:SS
+            time_slot += ':00'
 
         try:
             # Verificar si el usuario está autenticado
@@ -91,7 +86,7 @@ def reservate(request):
             # Contar cuántas reservas ha hecho el usuario esta semana
             user_reservations_this_week = Reservation.objects.filter(
                 idUser=request.user,
-                date__gte=start_of_week  # Todas las reservas desde el inicio de la semana
+                date__gte=start_of_week
             ).count()
 
             if user_reservations_this_week >= limit_reservations_per_week:
@@ -109,7 +104,7 @@ def reservate(request):
             else:
                 # Crear la nueva reserva asociada al usuario autenticado
                 new_reservation = Reservation.objects.create(
-                    idUser=request.user,  # Asocia la reserva con el usuario autenticado
+                    idUser=request.user,
                     facilities=facility,
                     availability=availability,
                     date=date
@@ -130,6 +125,7 @@ def reservate(request):
 
     return JsonResponse({'error': 'Requerimiento inválido'}, status=400)
 
+#Método para eliminar una reserva
 def delete_reservation(request):
     if request.method == 'POST':
         reservation_id = request.POST.get('reservation_id')

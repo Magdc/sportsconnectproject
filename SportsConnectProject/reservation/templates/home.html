@@ -7,18 +7,25 @@
     <div class="container mt-5">
         <div class="card text-center mb-3">
             <div class="card-body">
-                <h1 class="card-title">SportsConnect</h1>
+                <h1 class="card-title">SportsConnect EAFIT</h1>
+                <p>Bienvenido/a a SportsConnect, donde reservar un espacio en nuestra universidad nunca había sido tan fácil! Conoce nuestras instalaciones deportivas disponibles. Selecciona una fecha y un horario para hacer tu reserva.</p>
+                {% if not user.is_authenticated %}
+                <div class="alert alert-warning" role="alert">
+                    Si deseas reservar un espacio, por favor INICIA SESIÓN o REGISTRATE si es tu primera vez utilizando la plataforma.
+                </div>
+                {% endif %}
             </div>
         </div>
 
         <div class="row">
             {% for facility_info in facilities_with_availability %}
             <div class="col-md-4 mb-3">
-                <div class="card">
+                <div class="card h-100">
                     <img src="{{ facility_info.facility.image.url }}" class="card-img-top"
                         alt="{{ facility_info.facility.name }}">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ facility_info.facility.name }}</h5>
+                    <div class="card-body d-flex flex-column">
+                        <h4 class="card-title">{{ facility_info.facility.name }}</h4>
+                        <p class="card-text flex-grow-1">{{ facility_info.facility.description }}</p>
                         <label for="datePicker_{{ facility_info.facility.idFacility }}" class="form-label">Seleccionar Fecha</label>
                         <input type="text" class="form-control datePicker"
                             id="datePicker_{{ facility_info.facility.idFacility }}"
@@ -28,18 +35,24 @@
                         <label for="timeSlotSelect_{{ facility_info.facility.idFacility }}">Horarios Disponibles</label>
                         <select class="form-select timeSlotSelect"
                             id="timeSlotSelect_{{ facility_info.facility.idFacility }}">
+                            <option value="">Selecciona un horario...</option>
                             {% for slot in facility_info.availability %}
                             <option value="{{ slot.time_slot |time:'H:i' }}">{{ slot.time_slot|time:"H:i" }}</option>
                             {% endfor %}
                         </select>
 
-                        <!-- Botón para reservar -->
-                        <button class="btn btn-primary reserve-btn"
-                            data-id-facility="{{ facility_info.facility.idFacility }}">Reservar</button>
+                        <!-- Mensaje de error si no hay time slots -->
+                        <p id="error_{{ facility_info.facility.idFacility }}" class="text-danger" style="display:none;">Apreciado usuario, recuerde que no puede reservar en fechas posteriores a los siguientes 7 días.</p>
+
+                        <!-- Botón para reservar solo si el usuario está autenticado -->
+                        {% if user.is_authenticated %}
+                            <button class="btn btn-primary mt-auto reserve-btn"
+                                data-id-facility="{{ facility_info.facility.idFacility }}">Reservar</button>
+                        {% endif %}
 
                         <!-- Mostrar botón de cancelar reserva solo si el usuario está autenticado -->
                         {% if user.is_authenticated %}
-                        <button id="cancelButton_{{ facility_info.facility.idFacility }}" class="btn btn-danger cancel-reservation-btn">Cancelar Reserva</button>
+                        <button id="cancelButton_{{ facility_info.facility.idFacility }}" class="btn btn-danger mt-2 cancel-reservation-btn">Cancelar Reserva</button>
                         {% endif %}
                     </div>
                 </div>
@@ -63,6 +76,7 @@
                 var selectedDate = $(this).val();
                 var facilities_id = $(this).data('id-facility');
                 var timeSlotSelect = $('#timeSlotSelect_' + facilities_id);
+                var errorText = $('#error_' + facilities_id);
 
                 console.log("Fecha seleccionada: " + selectedDate);
                 console.log("ID de la instalación: " + facilities_id);
@@ -81,10 +95,16 @@
                         // Limpiar el desplegable de horarios
                         timeSlotSelect.empty();
 
-                        // Añadir las nuevas opciones de horarios al desplegable
-                        response.availability.forEach(function (slot) {
-                            timeSlotSelect.append('<option value="' + slot.id + '">' + slot.time_slot + '</option>');
-                        });
+                        // Si no hay slots disponibles, mostrar mensaje de error
+                        if (response.availability.length === 0) {
+                            errorText.show();
+                        } else {
+                            errorText.hide();
+                            timeSlotSelect.append('<option value="">Selecciona un horario...</option>');
+                            response.availability.forEach(function (slot) {
+                                timeSlotSelect.append('<option value="' + slot.time_slot + '">' + slot.time_slot + '</option>');
+                            });
+                        }
                     },
                     error: function (xhr, status, error) {
                         console.error('Error al obtener la disponibilidad:', error);
@@ -105,7 +125,7 @@
                         data: {
                             'facilities_id': facilities_id,
                             'date': date,
-                            'time_slot': time_slot,  // Enviar en formato HH:MM
+                            'time_slot': time_slot,
                             'csrfmiddlewaretoken': '{{ csrf_token }}'
                         },
                         success: function (response) {
@@ -126,7 +146,7 @@
                 }
             });
 
-            // Script para manejar la cancelación de la reserva (solo para usuarios autenticados)
+            // Script para manejar la cancelación de la reserva
             {% if user.is_authenticated %}
             $('.cancel-reservation-btn').on('click', function () {
                 var reservation_id = prompt('Por favor, ingresa el ID de la reserva que deseas cancelar:');
