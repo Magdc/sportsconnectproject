@@ -26,19 +26,19 @@ class CustomUserManager(BaseUserManager):
 
 class User(AbstractUser):
     idUser = models.AutoField(primary_key=True)
-    email = models.EmailField(unique=True)  
+    email = models.EmailField(unique=True)
     last_name2 = models.CharField(max_length=150, blank=True, null =True, verbose_name="Second last name")
     phone = models.IntegerField(blank=True, null=True, verbose_name="Cellphone")
     is_student = models.BooleanField(default=False, verbose_name="is student")
 
     objects = CustomUserManager()
-    username = None  # Eliminar el campo username
+    username = None
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS =['first_name', 'last_name']
     
 
     def __str__(self):
-        return f"({self.email}) {self.first_name} {self.last_name} {self.last_name2} "
+        return f"[ID {self.idUser}]({self.email}) {self.first_name} {self.last_name} {self.last_name2}"
 
 # Create your models here.

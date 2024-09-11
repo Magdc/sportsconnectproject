@@ -22,6 +22,7 @@ from django.conf.urls.static import static
 from django.conf import settings
 from reservation import views
 from django.urls import path, include
+from django.contrib.auth.views import LogoutView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,6 +31,6 @@ urlpatterns = [
     path('reservate/', reservationViews.reservate, name='reservate'),
     path('delete_reservation/', views.delete_reservation, name='delete_reservation'),
     path('account/', include('accounts.urls')),
+    path('logout/', LogoutView.as_view(), name='logout'),
 ]
-
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

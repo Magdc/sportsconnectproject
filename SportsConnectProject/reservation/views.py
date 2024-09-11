@@ -60,33 +60,75 @@ def get_availability_by_date(request):
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
+from django.http import JsonResponse
+from .models import Facilities, Availability, Reservation
+
+from django.http import JsonResponse
+from .models import Facilities, Availability, Reservation
+from django.utils import timezone
+from datetime import timedelta
+
 def reservate(request):
     if request.method == 'POST':
-        idFacility = request.POST.get('facilities_id')
+        idFacility = request.POST.get('facilities_id')  # Verificar que sea el nombre correcto en el formulario
         date = request.POST.get('date')
         time_slot = request.POST.get('time_slot')
 
-        if time_slot and len(time_slot) == 5:  # Verificar que el formato del tiempo sea HH:MM
-            time_slot += ':00'  # Convertir a HH:MM:00
+        if time_slot and len(time_slot) == 5:
+            time_slot += ':00'  # Convertir a formato HH:MM:SS
 
         try:
+            # Verificar si el usuario está autenticado
+            if not request.user.is_authenticated:
+                return JsonResponse({'success': False, 'error': 'Querido usuario, por favor inicie sesión para reservar.'})
+
+            # Límite de reservas por semana
+            limit_reservations_per_week = 3
+
+            # Calcular el inicio de la semana (por defecto el lunes)
+            start_of_week = timezone.now().date() - timedelta(days=timezone.now().date().weekday())
+
+            # Contar cuántas reservas ha hecho el usuario esta semana
+            user_reservations_this_week = Reservation.objects.filter(
+                idUser=request.user,
+                date__gte=start_of_week  # Todas las reservas desde el inicio de la semana
+            ).count()
+
+            if user_reservations_this_week >= limit_reservations_per_week:
+                return JsonResponse({'success': False, 'error': f'Ya has alcanzado el límite de {limit_reservations_per_week} reservas para esta semana.'})
+
+            # Obtener la instalación usando el campo 'idFacility'
+            facility = Facilities.objects.get(idFacility=idFacility)
+
             # Intentar obtener la disponibilidad basada en la instalación, fecha y hora seleccionada
-            availability = Availability.objects.get(facilities_id=idFacility, date=date, time_slot=time_slot)
+            availability = Availability.objects.get(facilities=facility, date=date, time_slot=time_slot)
 
             # Verificar si ya existe una reserva para esa disponibilidad
             if Reservation.objects.filter(availability=availability).exists():
-                return JsonResponse({'success': False, 'error': 'This schedule is already reserved'})
+                return JsonResponse({'success': False, 'error': 'Lo sentimos! Este horario ya ha sido reservado.'})
             else:
-                # Crear la nueva reserva
-                new_reservation = Reservation.objects.create(facilities_id=idFacility, availability=availability, date=date)
-                
+                # Crear la nueva reserva asociada al usuario autenticado
+                new_reservation = Reservation.objects.create(
+                    idUser=request.user,  # Asocia la reserva con el usuario autenticado
+                    facilities=facility,
+                    availability=availability,
+                    date=date
+                )
+
                 # Retornar el id de la reserva recién creada
                 return JsonResponse({'success': True, 'reservation_id': new_reservation.id})
-        
-        except Availability.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Availability not found.'})
 
-    return JsonResponse({'error': 'Invalid request'}, status=400)
+        except Facilities.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Instalación no encontrada.'})
+
+        except Availability.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Disponibilidad no encontrada para la fecha y hora seleccionadas.'})
+
+        except Exception as e:
+            # Capturar cualquier otro error no previsto y devolver detalles
+            return JsonResponse({'success': False, 'error': str(e)})
+
+    return JsonResponse({'error': 'Requerimiento inválido'}, status=400)
 
 def delete_reservation(request):
     if request.method == 'POST':
