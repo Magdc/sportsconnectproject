@@ -91,7 +91,7 @@ def reservate(request):
             ).count()
 
             if user_reservations_this_week >= limit_reservations_per_week:
-                return JsonResponse({'success': False, 'error': f'Ya has alcanzado el límite de {limit_reservations_per_week} reservas para esta semana.'})
+                return JsonResponse({'success': False, 'error': f'No puedes tener mas de {limit_reservations_per_week} reservas activas.'})
 
             # Obtener la instalación usando el campo 'idFacility'
             facility = Facilities.objects.get(idFacility=idFacility)
@@ -155,4 +155,26 @@ def historial(request):
     for i in reservas:
         print(reservas)
     return render(request, 'historial.html',{"activas":activas,"vencidas":vencidas})
+
+#metodo de prueba para eliminar la reserva desde el historial sin pedir ID de reserva
+def delete_reservation_historial(request):
+    if request.method == 'POST':
+        reservation_id = request.POST.get('reservation_id')
+
+        if not reservation_id:
+            return JsonResponse({'success': False, 'error': 'ID de reserva no proporcionado.'})
+
+        try:
+            # Verificar si la reserva pertenece al usuario actual
+            reservation = Reservation.objects.get(id=reservation_id, idUser=request.user)
+
+            # Eliminar la reserva si pertenece al usuario
+            reservation.delete()
+
+            return JsonResponse({'success': True, 'message': 'Reserva eliminada correctamente.'})
+
+        except Reservation.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Reserva no encontrada o no pertenece al usuario.'})
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)
 

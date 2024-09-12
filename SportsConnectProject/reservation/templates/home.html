@@ -49,11 +49,6 @@
                             <button class="btn btn-primary mt-auto reserve-btn"
                                 data-id-facility="{{ facility_info.facility.idFacility }}">Reservar</button>
                         {% endif %}
-
-                        <!-- Mostrar botón de cancelar reserva solo si el usuario está autenticado -->
-                        {% if user.is_authenticated %}
-                        <button id="cancelButton_{{ facility_info.facility.idFacility }}" class="btn btn-danger mt-2 cancel-reservation-btn">Cancelar Reserva</button>
-                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -145,38 +140,6 @@
                     alert('Por favor, selecciona una fecha y un horario.');
                 }
             });
-
-            // Script para manejar la cancelación de la reserva
-            {% if user.is_authenticated %}
-            $('.cancel-reservation-btn').on('click', function () {
-                var reservation_id = prompt('Por favor, ingresa el ID de la reserva que deseas cancelar:');
-                
-                if (reservation_id) {
-                    $.ajax({
-                        url: '{% url "delete_reservation" %}',
-                        type: 'POST',
-                        data: {
-                            'reservation_id': reservation_id,
-                            'csrfmiddlewaretoken': '{{ csrf_token }}'
-                        },
-                        success: function (response) {
-                            console.log('Respuesta de cancelación:', response);
-                            if (response.success) {
-                                alert('Reserva cancelada con éxito.');
-                            } else {
-                                alert('No se pudo cancelar la reserva: ' + response.error);
-                            }
-                        },
-                        error: function (xhr, status, error) {
-                            console.error('Error al cancelar la reserva:', error);
-                            alert('Ocurrió un error al intentar cancelar la reserva.');
-                        }
-                    });
-                } else {
-                    alert('No se proporcionó un ID de reserva válido.');
-                }
-            });
-            {% endif %}
         });
     </script>
 

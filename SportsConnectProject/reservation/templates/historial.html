@@ -8,45 +8,84 @@
             <div class="accordion accordion-flush" id="accordionFlushExample">
             {% for reserva in activas %}
                 <div class="accordion-item">
-              <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#{{reserva.id}}" aria-expanded="false" aria-controls="{{reserva.id}}">
-                 <h3>{{ reserva.date }}.   </h3>  <h6 class="ms-2 mt-2" style="float: right;" > {{ reserva.facilities.name }}</h6>
-                </button>
-              </h2>
-              <div id="{{reserva.id}}" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">
-                    <h6>Recuerda tu numero de reserva  es el #{{ reserva.id }}</h6>
-                    <p>¿Estás listo para llevar tu entrenamiento al siguiente nivel? Nuestro espacio deportivo te ofrece todo lo que necesitas para superar tus límites. Descubre nuevas formas de entrenar y alcanza tus objetivos más ambiciosos. No olvides estar puntual y recuerda llevar los implementos deportivos que necesites. </p>
-                    <button type="button" class="btn btn-primary">Editar </button>
-                <button type="button" id="cancelButton_{{ facility_info.facility.idFacility }}" class="btn btn-danger cancel-reservation-btn ms-2">Cancelar Reserva</button></div>
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#{{ reserva.id }}" aria-expanded="false" aria-controls="{{ reserva.id }}">
+                            <h3>{{ reserva.date }}.</h3> 
+                            <h6 class="ms-2 mt-2" style="float: right;">{{ reserva.facilities.name }}</h6>
+                        </button>
+                    </h2>
+                    <div id="{{ reserva.id }}" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
+                        <div class="accordion-body">
+                            <h6>Recuerda tu número de reserva es el #{{ reserva.id }}</h6>
+                            <p>¿Estás listo para llevar tu entrenamiento al siguiente nivel? Nuestro espacio deportivo te ofrece todo lo que necesitas para superar tus límites.</p>
+                            <button type="button" class="btn btn-primary">Editar</button>
+                            <!-- Botón para cancelar reserva con ID -->
+                            <button type="button" data-reservation-id="{{ reserva.id }}" class="btn btn-danger cancel-reservation-btn ms-2">Cancelar Reserva</button>
+                        </div>
+                    </div>
                 </div>
-                </div>
-                {% endfor %}   
+            {% endfor %}   
             </div>
         </div>
+
         <h3 class="card-header">Reservas pasadas</h3>
-        <div class="card-text"></div>
+        <div class="card-text">
             <div class="accordion accordion-flush" id="accordionFlushExample">
             {% for reserva in vencidas %}
                 <div class="accordion-item">
-              <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#{{reserva.id}}" aria-expanded="false" aria-controls="{{reserva.id}}">
-                 <h3>{{ reserva.date }}.   </h3>  <h6 class="ms-2 mt-2" style="float: right;" > {{ reserva.facilities.name }}</h6>
-                 
-                </button>
-              </h2>
-              <div id="{{reserva.id}}" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">
-                    <h6>Numero de reserva #{{ reserva.id }}</h6>
-                    <p>Esperamos hayas disfrutado tu reservación, si la pasaste bien ¡No dudes en volver a reservar con nosotros!</p>
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#{{ reserva.id }}" aria-expanded="false" aria-controls="{{ reserva.id }}">
+                            <h3>{{ reserva.date }}.</h3> 
+                            <h6 class="ms-2 mt-2" style="float: right;">{{ reserva.facilities.name }}</h6>
+                        </button>
+                    </h2>
+                    <div id="{{ reserva.id }}" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
+                        <div class="accordion-body">
+                            <h6>Número de reserva #{{ reserva.id }}</h6>
+                            <p>Esperamos hayas disfrutado tu reservación, ¡no dudes en volver a reservar con nosotros!</p>
+                        </div>
+                    </div>
                 </div>
-                </div>
-                {% endfor %}   
+            {% endfor %}
             </div>
         </div>
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Manejar la cancelación de la reserva
+        {% if user.is_authenticated %}
+        $('.cancel-reservation-btn').on('click', function () {
+            var reservation_id = $(this).data('reservation-id');  // Obtener el ID de la reserva del atributo data-reservation-id
+            console.log('Cancelando reserva con ID:', reservation_id);  // Debugging para verificar el ID
+
+            if (confirm('¿Estás seguro de que deseas cancelar esta reserva?')) {
+                $.ajax({
+                    url: '{% url "delete_reservation_historial" %}',
+                    type: 'POST',
+                    data: {
+                        'reservation_id': reservation_id,  // Enviar el ID correctamente
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert('Reserva cancelada con éxito.');
+                            location.reload();  // Recargar la página para actualizar la lista
+                        } else {
+                            alert('Error: ' + response.error);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error al cancelar la reserva:', error);
+                        alert('Ocurrió un error al intentar cancelar la reserva.');
+                    }
+                });
+            }
+        });
+        {% endif %}
+    });
+</script>
+
 {% endblock content %}
- 
-  

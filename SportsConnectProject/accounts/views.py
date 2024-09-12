@@ -13,8 +13,12 @@ class Register(CreateView):
     success_url = reverse_lazy('home')
 
     def form_valid(self, form):
+        # Verificar si el email tiene el dominio eafit.edu.co
+        email = form.cleaned_data.get('email')
+        if email.endswith('@eafit.edu.co'):
+            form.instance.is_student = True
         response = super().form_valid(form)
-        auth_login(self.request, form.instance)
+        auth_login(self.request, form.instance)  # Loguear automáticamente al usuario
         return response
 
 class Login(AuthLoginView):

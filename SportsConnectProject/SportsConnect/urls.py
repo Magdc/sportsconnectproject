@@ -32,5 +32,6 @@ urlpatterns = [
     path('delete_reservation/', reservationViews.delete_reservation, name='delete_reservation'),
     path('account/', include('accounts.urls')),
     path('historial/', reservationViews.historial, name='Historial'),
+    path('delete_reservation_historial/', views.delete_reservation_historial, name='delete_reservation_historial'),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
