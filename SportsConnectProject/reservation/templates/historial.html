@@ -17,6 +17,7 @@
                     <div id="{{ reserva.id }}" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
                         <div class="accordion-body">
                             <h6>Recuerda tu número de reserva es el #{{ reserva.id }}</h6>
+                            <h6>Hora: {{ reserva.availability.time_slot }} hrs.</h6>
                             <p>¿Estás listo para llevar tu entrenamiento al siguiente nivel? Nuestro espacio deportivo te ofrece todo lo que necesitas para superar tus límites.</p>
                             <button type="button" class="btn btn-primary">Editar</button>
                             <!-- Botón para cancelar reserva con ID -->
