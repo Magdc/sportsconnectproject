@@ -1,3 +1,5 @@
+import os
+import base64
 from django.shortcuts import render
 from django.http import JsonResponse
 from .models import Facilities, Availability, Reservation
@@ -6,6 +8,13 @@ import json
 from datetime import timedelta
 from django.utils import timezone
 from datetime import datetime
+from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from dotenv import load_dotenv
+from email.mime.text import MIMEText
+from django.http import HttpResponse
 
 #Método para mostrar la página principal
 def home(request):
@@ -91,7 +100,7 @@ def reservate(request):
             ).count()
 
             if user_reservations_this_week >= limit_reservations_per_week:
-                return JsonResponse({'success': False, 'error': f'No puedes tener mas de {limit_reservations_per_week} reservas activas.'})
+                return JsonResponse({'success': False, 'error': f'No puedes tener más de {limit_reservations_per_week} reservas activas.'})
 
             # Obtener la instalación usando el campo 'idFacility'
             facility = Facilities.objects.get(idFacility=idFacility)
@@ -101,17 +110,10 @@ def reservate(request):
 
             # Verificar si ya existe una reserva para esa disponibilidad
             if Reservation.objects.filter(availability=availability).exists():
-                return JsonResponse({'success': False, 'error': 'Lo sentimos! Este horario ya ha sido reservado.'})
+                return JsonResponse({'success': False, 'error': 'Lo sentimos, este horario ya ha sido reservado.'})
             else:
-                # Crear la nueva reserva asociada al usuario autenticado
-                new_reservation = Reservation.objects.create(
-                    idUser=request.user,
-                    facilities=facility,
-                    availability=availability,
-                    date=date
-                )
-
-                # Retornar el id de la reserva recién creada
+                new_reservation = Reservation.objects.create(idUser=request.user,facilities=facility,availability=availability,date=date)
+                reserva_confirmacion(request,request.user.email, facility.name,new_reservation.date,availability.time_slot)
                 return JsonResponse({'success': True, 'reservation_id': new_reservation.id})
 
         except Facilities.DoesNotExist:
@@ -121,10 +123,10 @@ def reservate(request):
             return JsonResponse({'success': False, 'error': 'Disponibilidad no encontrada para la fecha y hora seleccionadas.'})
 
         except Exception as e:
-            # Capturar cualquier otro error no previsto y devolver detalles
             return JsonResponse({'success': False, 'error': str(e)})
 
     return JsonResponse({'error': 'Requerimiento inválido'}, status=400)
+
 
 #Método para eliminar una reserva
 def delete_reservation(request):
@@ -156,7 +158,7 @@ def historial(request):
         print(reservas)
     return render(request, 'historial.html',{"activas":activas,"vencidas":vencidas})
 
-#metodo de prueba para eliminar la reserva desde el historial sin pedir ID de reserva
+# Método de prueba para eliminar la reserva desde el historial sin pedir ID de reserva
 def delete_reservation_historial(request):
     if request.method == 'POST':
         reservation_id = request.POST.get('reservation_id')
@@ -177,4 +179,72 @@ def delete_reservation_historial(request):
             return JsonResponse({'success': False, 'error': 'Reserva no encontrada o no pertenece al usuario.'})
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
+
+# Método para enviar correos electrónicos de confirmación de reserva
+load_dotenv()
+
+# Ruta a las credenciales y token de Google
+CREDENTIALS_FILE = os.getenv('GOOGLE_CREDENTIALS_PATH')  
+TOKEN_FILE = os.getenv('GOOGLE_TOKEN_PATH') 
+
+# Scopes para enviar correos
+SCOPES = ['https://www.googleapis.com/auth/gmail.send']
+
+def gmail_authenticate():
+    creds = None
+    if os.path.exists(TOKEN_FILE):
+        creds = Credentials.from_authorized_user_file(TOKEN_FILE, SCOPES)
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_FILE, SCOPES)
+            creds = flow.run_local_server(port=8080)
+        with open(TOKEN_FILE, 'w') as token_file:
+            token_file.write(creds.to_json())
+    return creds
+
+# Enviar correos desde la cuenta del administrador
+def send_gmail(user_email, subject, message):
+    creds = gmail_authenticate()
+    service = build('gmail', 'v1', credentials=creds)
+
+    # Construir el mensaje MIME
+    message_mime = MIMEText(message)
+    message_mime['to'] = user_email
+    message_mime['subject'] = subject
+    raw = base64.urlsafe_b64encode(message_mime.as_bytes()).decode()
+
+    # Enviar el correo
+    message = {'raw': raw}
+    try:
+        message = service.users().messages().send(userId="me", body=message).execute()
+        return HttpResponse('Correo enviado correctamente')
+    except Exception as e:
+        return HttpResponse(f'Error enviando el correo: {str(e)}')
+
+# Confirmación de reserva con correo al usuario
+def reserva_confirmacion(request, user_email, facility_name, reservation_date, time_slot):
+    subject = "Confirmación de reserva - {facility_name}"
+    
+    message = f"""
+    Estimado {request.user.first_name},
+
+    Su reserva ha sido realizada con éxito.
+
+    Detalles de la reserva:
+    - Espacio reservado: {facility_name}
+    - Fecha: {reservation_date}  
+    - Hora: {time_slot}
+    
+    ¡Gracias por usar nuestro servicio!
+
+    Atentamente,
+    El equipo de SportsConnect
+    
+    
+    
+    """
+    
+    return send_gmail(user_email, subject, message)
 
