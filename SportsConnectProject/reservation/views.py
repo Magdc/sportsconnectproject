@@ -4,6 +4,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from .models import Facilities, Availability, Reservation
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
 import json
 from datetime import timedelta
 from django.utils import timezone
@@ -73,6 +74,7 @@ def get_availability_by_date(request):
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
 #Método para gestionar reservas
+@login_required
 def reservate(request):
     if request.method == 'POST':
         idFacility = request.POST.get('facilities_id')
@@ -129,6 +131,7 @@ def reservate(request):
 
 
 #Método para eliminar una reserva
+@login_required
 def delete_reservation(request):
     if request.method == 'POST':
         reservation_id = request.POST.get('reservation_id')
@@ -148,6 +151,7 @@ def delete_reservation(request):
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
 # Método para mostrar las reservas
+@login_required
 def historial(request):
     user = request.user.idUser
     reservas=Reservation.objects.filter(idUser=user)
@@ -159,6 +163,7 @@ def historial(request):
     return render(request, 'historial.html',{"activas":activas,"vencidas":vencidas})
 
 # Método de prueba para eliminar la reserva desde el historial sin pedir ID de reserva
+@login_required
 def delete_reservation_historial(request):
     if request.method == 'POST':
         reservation_id = request.POST.get('reservation_id')
@@ -204,18 +209,15 @@ def gmail_authenticate():
             token_file.write(creds.to_json())
     return creds
 
-# Enviar correos desde la cuenta del administrador
-def send_gmail(user_email, subject, message):
+def send_email(user_email, subject, message):
     creds = gmail_authenticate()
     service = build('gmail', 'v1', credentials=creds)
-
-    # Construir el mensaje MIME
+    
     message_mime = MIMEText(message)
     message_mime['to'] = user_email
     message_mime['subject'] = subject
     raw = base64.urlsafe_b64encode(message_mime.as_bytes()).decode()
 
-    # Enviar el correo
     message = {'raw': raw}
     try:
         message = service.users().messages().send(userId="me", body=message).execute()
@@ -223,9 +225,8 @@ def send_gmail(user_email, subject, message):
     except Exception as e:
         return HttpResponse(f'Error enviando el correo: {str(e)}')
 
-# Confirmación de reserva con correo al usuario
 def reserva_confirmacion(request, user_email, facility_name, reservation_date, time_slot):
-    subject = "Confirmación de reserva - {facility_name}"
+    subject = "Confirmación de reserva en EAFIT"
     
     message = f"""
     Estimado {request.user.first_name},
@@ -241,10 +242,7 @@ def reserva_confirmacion(request, user_email, facility_name, reservation_date, t
 
     Atentamente,
     El equipo de SportsConnect
-    
-    
-    
     """
     
-    return send_gmail(user_email, subject, message)
+    return send_email(user_email, subject, message)
 
