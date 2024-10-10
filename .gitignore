@@ -1,3 +1,6 @@
 *.pyc
 /__pycache__/*
 /SportsConnectProject/p1/*
+.env
+/SportsConnectProject/config/credentials.json
+/SportsConnectProject/config/token.json
