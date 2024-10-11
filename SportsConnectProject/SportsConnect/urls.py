@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from reservation import views as reservationViews
-
+from facility import views as facilityViews
 from django.conf.urls.static import static
 from django.conf import settings
 from reservation import views
@@ -33,5 +33,8 @@ urlpatterns = [
     path('account/', include('accounts.urls')),
     path('historial/', reservationViews.historial, name='Historial'),
     path('delete_reservation_historial/', views.delete_reservation_historial, name='delete_reservation_historial'),
+    path('adminsite/', facilityViews.adminsite, name='adminsite'),
+    path('crear-espacio/', facilityViews.crear_espacio, name='crear_espacio'),
+    path('restringir-acceso/<int:facility_id>/', facilityViews.restringir_acceso, name='restringir_acceso'),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

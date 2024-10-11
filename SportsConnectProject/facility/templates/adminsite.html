@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12 text-center">
+            <h1 class="display-4">Panel de administrador</h1>
+            <p class="lead mt-3">Desde aquí podrá gestionar todo lo relacionado con los espacios deportivos, desde las reservas hasta los usuarios.</p>
+        </div>
+    </div>
+
+    <!-- Desplegable para Espacios -->
+    <div class="accordion mt-5" id="accordionExample">
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingOne">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                    Espacios
+                </button>
+            </h2>
+            <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                <div class="accordion-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <h5>Lista de Espacios</h5>
+                        <button class="btn btn-primary" disabled>Crear Espacio</button>
+                    </div>
+                    <ul class="list-group">
+                        {% for facility in facilities %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ facility.name }}
+                                <div>
+                                    <button class="btn btn-warning btn-sm" disabled>Restringir acceso</button>
+                                    <button class="btn btn-secondary btn-sm" disabled>Modificar</button>
+                                    <button class="btn btn-danger btn-sm" disabled>Eliminar</button>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Desplegable para Reservas -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingTwo">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                    Reservas
+                </button>
+            </h2>
+            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
+                <div class="accordion-body">
+                    <ul class="list-group">
+                        {% for reserva in reservas %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Reserva ID: {{ reserva.id }} - {{ reserva.facilities.name }} ({{ reserva.date }} - {{ reserva.availability.time_slot }})
+                                <div>
+                                    <button class="btn btn-danger btn-sm" disabled>Eliminar</button>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Desplegable para Usuarios -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingThree">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                    Usuarios
+                </button>
+            </h2>
+            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#accordionExample">
+                <div class="accordion-body">
+                    <ul class="list-group">
+                        {% for user in users %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ user.first_name }} {{ user.last_name }} ({{ user.email }})
+                                
+                                <div>
+                                    <button class="btn btn-danger btn-sm" disabled>Eliminar</button>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

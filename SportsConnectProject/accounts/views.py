@@ -18,7 +18,7 @@ class Register(CreateView):
         if email.endswith('@eafit.edu.co'):
             form.instance.is_student = True
         response = super().form_valid(form)
-        auth_login(self.request, form.instance)  # Loguear automáticamente al usuario
+        auth_login(self.request, form.instance) 
         return response
 
 class Login(AuthLoginView):

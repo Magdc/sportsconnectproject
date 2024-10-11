@@ -1,6 +1,6 @@
 import os
 import base64
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from .models import Facilities, Availability, Reservation
 from django.views.decorators.csrf import csrf_exempt
@@ -16,6 +16,9 @@ from googleapiclient.discovery import build
 from dotenv import load_dotenv
 from email.mime.text import MIMEText
 from django.http import HttpResponse
+from django.contrib.admin.views.decorators import staff_member_required
+from reservation.models import Facilities, Reservation
+from accounts.models import User
 
 #Método para mostrar la página principal
 def home(request):
