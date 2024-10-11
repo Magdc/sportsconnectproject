@@ -18,6 +18,7 @@ class Availability(models.Model):
     facilities = models.ForeignKey(Facilities, null=True, on_delete=models.CASCADE)
     date = models.DateField(default=timezone.now)
     time_slot = models.TimeField()
+    is_restricted = models.BooleanField(default=False) 
     
     def __str__(self):
         return (f"{self.facilities.name} - [{self.date} - {self.time_slot}]")

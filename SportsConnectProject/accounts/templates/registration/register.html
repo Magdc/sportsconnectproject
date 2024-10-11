@@ -6,13 +6,13 @@
 </head>
 {% extends 'base.html' %}
 {% block content %}
-<body>
-    <h2>Registrarse</h2>
+<div class="container mt-5">
+    <h2>Registrarse en SportsConnect</h2>
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit">Registrarse</button>
+        <button type="submit" class="btn" style="background-color: #000053; color: #ffffff;">Registrarse</button>
     </form>
-</body>
+</div>
 {% endblock content %}
 </html>

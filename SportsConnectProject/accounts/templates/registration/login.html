@@ -9,11 +9,11 @@
 {% extends 'base.html' %}
 {% block content %}
 <body>
-    <h2>Login</h2>
+    <h2>Iniciar Sesión en SportsConnect</h2>
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit">Login</button>
+        <button type="submit">Iniciar Sesión</button>
     </form>
 </body>
 {% endblock content %}

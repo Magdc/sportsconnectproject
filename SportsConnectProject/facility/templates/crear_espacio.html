@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 style="font-family: 'Helvetica', sans-serif; font-weight: bold;">Crear nuevo espacio</h2>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn" style="background-color: #000053; color: #ffffff; font-family: 'Helvetica', sans-serif;">Crear Espacio</button>
+    </form>
+</div>
+{% endblock %}

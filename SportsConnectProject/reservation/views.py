@@ -42,29 +42,34 @@ def home(request):
     }
     return render(request, 'home.html', context)
 
-@csrf_exempt
 #Método para generar y obtener la disponibilidad de una instalación en una fecha específica
+@csrf_exempt
 def get_availability_by_date(request):
     if request.method == 'POST':
         selected_date = request.POST.get('date')
         idFacility = request.POST.get('idFacility')
-
-        # Obtener la fecha de hoy
         today = timezone.now().date()
 
         # Generar disponibilidad para los próximos 7 días si no existe
         facility = Facilities.objects.get(idFacility=idFacility)
         for i in range(7):
             date_to_check = today + timedelta(days=i)
-            for time_slot in Availability.generate_time_slots(self=facility):  # Utiliza el método del modelo
+            for time_slot in Availability.generate_time_slots(self=facility):
                 # Crear disponibilidad si no existe ya
                 Availability.objects.get_or_create(facilities=facility, date=date_to_check, time_slot=time_slot)
 
-        # Filtrar disponibilidad para la fecha seleccionada y la instalación específica
-        availability = Availability.objects.filter(facilities_id=idFacility, date=selected_date).order_by('time_slot')
+        # Filtrar disponibilidad para la fecha seleccionada, la instalación específica y que no esté restringido
+        availability = Availability.objects.filter(
+            facilities_id=idFacility, 
+            date=selected_date,
+            is_restricted=False  
+        ).order_by('time_slot')
 
         # Obtener los horarios ya reservados para esa fecha y esa instalación
-        reserved_slots = Reservation.objects.filter(availability__facilities_id=idFacility, date=selected_date).values_list('availability__time_slot', flat=True)
+        reserved_slots = Reservation.objects.filter(
+            availability__facilities_id=idFacility, 
+            date=selected_date
+        ).values_list('availability__time_slot', flat=True)
 
         # Excluir los horarios ya reservados de la lista de disponibilidad
         available_slots = availability.exclude(time_slot__in=reserved_slots).distinct()

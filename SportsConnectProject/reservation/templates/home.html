@@ -2,53 +2,58 @@
 <html lang="es">
 
 {% extends 'base.html' %}
+
 {% block content %}
 <body>
     <div class="container mt-5">
-        <div class="card text-center mb-3">
+        <div class="card text-center mb-3" style="background-color: #ffffff;">
             <div class="card-body">
-                <h1 class="card-title">SportsConnect EAFIT</h1>
-                <p>Bienvenido/a a SportsConnect, donde reservar un espacio en nuestra universidad nunca había sido tan fácil! Conoce nuestras instalaciones deportivas disponibles. Selecciona una fecha y un horario para hacer tu reserva.</p>
+                <h1 class="card-title" style="color: #000000;">SportsConnect EAFIT</h1>
+                <p style="color: #000000;">
+                    Bienvenido/a a SportsConnect, donde reservar un espacio en nuestra universidad nunca había sido tan fácil!
+                </p>
                 {% if not user.is_authenticated %}
                 <div class="alert alert-warning" role="alert">
-                    Si deseas reservar un espacio, por favor INICIA SESIÓN o REGISTRATE si es tu primera vez utilizando la plataforma.
+                    Si deseas reservar un espacio, por favor INICIA SESIÓN o REGÍSTRATE si es tu primera vez utilizando la plataforma.
                 </div>
                 {% endif %}
             </div>
         </div>
 
-        <div class="row">
+        <h3 style="color: #000000;">Conoce los espacios que tenemos para ti</h3>
+        <div class="accordion" id="spacesAccordion">
             {% for facility_info in facilities_with_availability %}
-            <div class="col-md-4 mb-3">
-                <div class="card h-100">
-                    <img src="{{ facility_info.facility.image.url }}" class="card-img-top"
-                        alt="{{ facility_info.facility.name }}">
-                    <div class="card-body d-flex flex-column">
-                        <h4 class="card-title">{{ facility_info.facility.name }}</h4>
-                        <p class="card-text flex-grow-1">{{ facility_info.facility.description }}</p>
-                        <label for="datePicker_{{ facility_info.facility.idFacility }}" class="form-label">Seleccionar Fecha</label>
-                        <input type="text" class="form-control datePicker"
-                            id="datePicker_{{ facility_info.facility.idFacility }}"
-                            data-id-facility="{{ facility_info.facility.idFacility }}" placeholder="Seleccionar una fecha">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="heading{{ facility_info.facility.idFacility }}">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ facility_info.facility.idFacility }}" aria-expanded="false" aria-controls="collapse{{ facility_info.facility.idFacility }}" style="font-family: 'Helvetica', sans-serif; font-weight: bold;">
+                        {{ facility_info.facility.name }}
+                    </button>
+                </h2>
+                <div id="collapse{{ facility_info.facility.idFacility }}" class="accordion-collapse collapse" aria-labelledby="heading{{ facility_info.facility.idFacility }}" data-bs-parent="#spacesAccordion">
+                    <div class="accordion-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <img src="{{ facility_info.facility.image.url }}" class="img-fluid" alt="{{ facility_info.facility.name }}">
+                            </div>
+                            <div class="col-md-6">
+                                <h4 style="color: #000000;">Descripción:</h4>
+                                <p style="color: #000000;">{{ facility_info.facility.description }}</p>
 
-                        <!-- Desplegable para horarios -->
-                        <label for="timeSlotSelect_{{ facility_info.facility.idFacility }}">Horarios Disponibles</label>
-                        <select class="form-select timeSlotSelect"
-                            id="timeSlotSelect_{{ facility_info.facility.idFacility }}">
-                            <option value="">Selecciona un horario...</option>
-                            {% for slot in facility_info.availability %}
-                            <option value="{{ slot.time_slot |time:'H:i' }}">{{ slot.time_slot|time:"H:i" }}</option>
-                            {% endfor %}
-                        </select>
+                                <label for="datePicker_{{ facility_info.facility.idFacility }}" class="form-label" style="color: #000000;">Seleccionar Fecha</label>
+                                <input type="text" class="form-control datePicker" id="datePicker_{{ facility_info.facility.idFacility }}" data-id-facility="{{ facility_info.facility.idFacility }}" placeholder="Seleccionar una fecha">
 
-                        <!-- Mensaje de error si no hay time slots -->
-                        <p id="error_{{ facility_info.facility.idFacility }}" class="text-danger" style="display:none;">Apreciado usuario, recuerde que no puede reservar en fechas posteriores a los siguientes 7 días.</p>
+                                <label for="timeSlotSelect_{{ facility_info.facility.idFacility }}" style="color: #000000;">Horarios Disponibles</label>
+                                <select class="form-select timeSlotSelect" id="timeSlotSelect_{{ facility_info.facility.idFacility }}">
+                                    <option value="">Selecciona un horario...</option>
+                                </select>
 
-                        <!-- Botón para reservar solo si el usuario está autenticado -->
-                        {% if user.is_authenticated %}
-                            <button class="btn btn-primary mt-auto reserve-btn"
-                                data-id-facility="{{ facility_info.facility.idFacility }}">Reservar</button>
-                        {% endif %}
+                                <p id="error_{{ facility_info.facility.idFacility }}" class="text-danger" style="display:none;">Apreciado usuario, no hay horarios disponibles para esta fecha.</p>
+
+                                {% if user.is_authenticated %}
+                                    <button class="btn btn-primary mt-auto reserve-btn" style="background-color: #000053; border-color: #000053;" data-id-facility="{{ facility_info.facility.idFacility }}">Reservar</button>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -56,13 +61,13 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-VOLgN6fbpTbDXPeJm04IGFsjB5WlwF6kKm5pzoS7Vt5CayQPSiD3l0pvn5sKJdFQ"
-        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-VOLgN6fbpTbDXPeJm04IGFsjB5WlwF6kKm5pzoS7Vt5CayQPSiD3l0pvn5sKJdFQ" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.9.0/dist/js/bootstrap-datepicker.min.js"></script>
+
     <script>
         $(document).ready(function () {
+            // Inicializar datepicker
             $('.datePicker').datepicker({
                 format: 'yyyy-mm-dd',
                 startDate: new Date(),
@@ -76,6 +81,7 @@
                 console.log("Fecha seleccionada: " + selectedDate);
                 console.log("ID de la instalación: " + facilities_id);
 
+                // Hacer la petición Ajax para obtener los horarios disponibles
                 $.ajax({
                     url: '{% url "get_availability_by_date" %}',
                     type: 'POST',
@@ -87,13 +93,14 @@
                     success: function (response) {
                         console.log("Respuesta de disponibilidad:", response);
 
-                        // Limpiar el desplegable de horarios
+                        // Limpiar la lista de horarios anteriores
                         timeSlotSelect.empty();
 
-                        // Si no hay slots disponibles, mostrar mensaje de error
                         if (response.availability.length === 0) {
+                            // Si no hay disponibilidad, mostrar el mensaje de error
                             errorText.show();
                         } else {
+                            // Si hay horarios disponibles, ocultar el error y llenar el dropdown
                             errorText.hide();
                             timeSlotSelect.append('<option value="">Selecciona un horario...</option>');
                             response.availability.forEach(function (slot) {
@@ -102,12 +109,12 @@
                         }
                     },
                     error: function (xhr, status, error) {
-                        console.error('Error al obtener la disponibilidad:', error);
+                        console.error('Error al obtener los horarios:', error);
                     }
                 });
             });
 
-            // Script para manejar la reserva
+            // Manejar la reserva al hacer clic en el botón "Reservar"
             $('.reserve-btn').on('click', function () {
                 var facilities_id = $(this).data('id-facility');
                 var date = $('#datePicker_' + facilities_id).val();
