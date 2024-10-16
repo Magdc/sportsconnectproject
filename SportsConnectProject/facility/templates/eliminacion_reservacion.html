@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>¿Estás seguro de que deseas eliminar la reservación de {{ reservation.facilities.name }} el {{ reservation.date }}?</h2>
+
+  <form method="POST">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Eliminar</button>
+    <a href="{% url 'adminsite' %}" class="btn btn-secondary">Cancelar</a>
+  </form>
+{% endblock %}

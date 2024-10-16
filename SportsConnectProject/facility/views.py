@@ -73,3 +73,25 @@ def restringir_acceso(request, facility_id):
 @staff_member_required
 def mostrarGraficas(request):
     return render(request, 'analiticas.html')
+
+@staff_member_required
+def eliminar_espacio(request, facility_id):
+    facility = get_object_or_404(Facilities, idFacility=facility_id)
+    
+    if request.method == 'POST':
+        facility.delete()  
+        messages.success(request, 'Espacio eliminado con éxito.')
+        return redirect('adminsite')  
+    
+    return render(request, 'eliminacion.html', {'facility': facility})
+
+@staff_member_required
+def eliminar_reservacion(request, reservation_id):
+    reservation = get_object_or_404(Reservation, id=reservation_id)
+    
+    if request.method == 'POST':
+        reservation.delete()  
+        messages.success(request, 'Reservación eliminada con éxito.')
+        return redirect('adminsite') 
+    
+    return render(request, 'eliminacion_reservacion.html', {'reserva': reservation})
