@@ -12,3 +12,5 @@ pyparsing==3.1.4
 python-dateutil==2.9.0.post0
 six==1.16.0
 sqlparse==0.5.1
+google-auth google-auth-oauthlib google-auth-httplib2
+google-api-python-client

@@ -70,3 +70,6 @@ def restringir_acceso(request, facility_id):
     restricted_timeslots = Availability.objects.filter(facilities_id=facility_id, is_restricted=True)
 
     return render(request, 'restringir_acceso.html', {'facility': facility, 'form': form, 'restricted_timeslots': restricted_timeslots})
+@staff_member_required
+def mostrarGraficas(request):
+    return render(request, 'analiticas.html')

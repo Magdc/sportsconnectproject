@@ -34,5 +34,7 @@ urlpatterns = [
     path('adminsite/', facilityViews.adminsite, name='adminsite'),
     path('crearespacio/', facilityViews.crear_espacio, name='crear_espacio'),
     path('restringiracceso/<int:facility_id>/', facilityViews.restringir_acceso, name='restringir_acceso'),
+    path('analiticas/', facilityViews.mostrarGraficas, name='analisis'),
+    path('editar/<int:reserva_id>/', reservationViews.editarReserva, name='editar'),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

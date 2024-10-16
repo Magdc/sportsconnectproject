@@ -105,10 +105,14 @@
                     <li class="nav-item">
                         <a class="nav-link active" aria-current="page" href="{% url 'Historial' %}">Mis Reservas</a>
                     </li>
+                    
                     {% if user.is_staff %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'adminsite' %}">Panel de Administrador</a>
                     </li>
+                    <li class="nav-item">
+                      <a class="nav-link active" aria-current="page" href="{% url 'analisis' %}">Información relevante</a>
+                  </li>
                     {% endif %}
                     {% endif %}
                 </ul>
