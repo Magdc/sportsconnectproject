@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Editar Espacio Deportivo: {{ facility.name }}</h2>
+
+    {% if messages %}
+    <div class="alert alert-success" role="alert">
+        {% for message in messages %}
+            {{ message }}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+            {{ form.name.label_tag }}
+            {{ form.name }}
+        </div>
+
+        <div class="mb-3">
+            {{ form.description.label_tag }}
+            {{ form.description }}
+        </div>
+
+        <div class="mb-3">
+            {{ form.image.label_tag }}
+            {{ form.image }}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+        <a href="{% url 'adminsite' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

@@ -95,3 +95,22 @@ def eliminar_reservacion(request, reservation_id):
         return redirect('adminsite') 
     
     return render(request, 'eliminacion_reservacion.html', {'reserva': reservation})
+
+@staff_member_required
+def editar_espacio(request, facility_id):
+    # Obtén el objeto Facility que se quiere editar
+    facility = get_object_or_404(Facilities, idFacility=facility_id)
+
+    # Si se recibe una solicitud POST, actualiza el objeto con los datos del formulario
+    if request.method == 'POST':
+        form = FacilityForm(request.POST, request.FILES, instance=facility)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Espacio actualizado con éxito.')
+            return redirect('adminsite')  # Redirige a la página de administración
+    else:
+        # Si no es una solicitud POST, muestra el formulario con los datos actuales del objeto
+        form = FacilityForm(instance=facility)
+
+    # Renderiza la plantilla de edición con el formulario
+    return render(request, 'editar_espacio.html', {'form': form, 'facility': facility})

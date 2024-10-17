@@ -29,7 +29,7 @@
                                 {{ facility.name }}
                                 <div>
                                     <a href="{% url 'restringir_acceso' facility.idFacility %}" class="btn" style="background-color: #000053; color: #ffffff;">Restringir acceso</a>
-                                    <button class="btn" style="background-color: #ffc107; color: #ffffff;" disabled>Modificar</button>
+                                    <a href="{% url 'editar_espacio' facility.idFacility %}" class="btn" style="background-color: #ffc107; color: #ffffff;" disabled>Modificar</button>
                                     <a href="{% url 'eliminar_espacio' facility.idFacility %}" class="btn btn-danger btn-sm">Eliminar</a>
                                 </div>
                             </li>
