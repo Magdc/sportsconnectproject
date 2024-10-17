@@ -38,5 +38,6 @@ urlpatterns = [
     path('editar/<int:reserva_id>/', reservationViews.editarReserva, name='editar'),
     path('eliminar_espacio/<int:facility_id>/', facilityViews.eliminar_espacio, name='eliminar_espacio'),
     path('eliminar_reservacion/<int:reservation_id>/', facilityViews.eliminar_reservacion, name='eliminar_reservacion'),
+    path('editar_espacio/<int:facility_id>/', facilityViews.editar_espacio, name='editar_espacio'),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
