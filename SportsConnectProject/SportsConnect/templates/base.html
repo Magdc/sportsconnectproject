@@ -78,6 +78,19 @@
       .content-wrapper {
         flex: 1;
       }
+
+      .slogan {
+        font-size: 14px;
+        color: #ffffff;
+        font-family: 'Helvetica', sans-serif;
+        font-weight: bold;
+        text-align: center;
+        margin-top: 5px; 
+      }
+      .logosc {
+        height: 125px;
+        width: 150px;
+      }
     </style>
 </head>
 <body>
@@ -85,7 +98,9 @@
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'home' %}">
                 <img src="https://entrenos.eafit.edu.co/SiteCollectionImages/logo_eafit_completo.png" class="logo" alt="Universidad EAFIT">
-            </a>
+                <img src="{% static 'images/logo.png' %}" class="logosc ms-3" alt="Segundo Logo">
+                <div class="slogan">El deporte nos conecta</div>
+              </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -105,10 +120,14 @@
                     <li class="nav-item">
                         <a class="nav-link active" aria-current="page" href="{% url 'Historial' %}">Mis Reservas</a>
                     </li>
+                    
                     {% if user.is_staff %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'adminsite' %}">Panel de Administrador</a>
                     </li>
+                    <li class="nav-item">
+                      <a class="nav-link active" aria-current="page" href="{% url 'analisis' %}">Información relevante</a>
+                  </li>
                     {% endif %}
                     {% endif %}
                 </ul>

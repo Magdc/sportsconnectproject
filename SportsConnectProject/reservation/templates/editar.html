@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block content %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-VOLgN6fbpTbDXPeJm04IGFsjB5WlwF6kKm5pzoS7Vt5CayQPSiD3l0pvn5sKJdFQ"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.9.0/dist/js/bootstrap-datepicker.min.js"></script>
+
+<body>
+    <div class="container mt-5">
+        <div class="card text-center mb-3">
+            <div class="card-body">
+                <h1 class="card-title">SportsConnect EAFIT</h1>
+                <p>Edita la información de tu reserva, desde aquí.</p>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            {% if reserva %}
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <img src="{{ reserva.facilities.image.url }}" class="card-img-top"
+                        alt="{{ reserva.facilities.name }}">
+                    <div class="card-body d-flex flex-column">
+                        <h4 class="card-title">{{ reserva.facilities.name }}</h4>
+                        <p class="card-text flex-grow-1">{{ reserva.facilities.description }}</p>
+
+                        <!-- Mostrar la fecha de la reserva (solo lectura) -->
+                        <div class="mb-3">
+                            <label for="fechaReservacion" class="form-label">Fecha de la reservación</label>
+                            <input type="text" id="fechaReservacion" class="form-control" value="{{ reserva.availability.date }}" readonly>
+                        </div>
+                      
+                        <!-- Mostrar los horarios disponibles -->
+                        <label for="timeSlotSelect">Horarios Disponibles</label>
+                        <select class="form-select" id="timeSlotSelect" name="time_slot">
+                            <option value="">Selecciona un horario...</option>
+                            {% for slot in horarios_disponibles %}
+                            <option value="{{ slot.id }}" {% if slot.id == reserva.availability.id %} selected {% endif %}>
+                                {{ slot.time_slot|time:"H:i" }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        
+                        <!-- Mensaje de error si no hay time slots -->
+                        <p id="error" class="text-danger" style="display:none;">No hay horarios disponibles.</p>
+
+                        <!-- Botón para actualizar la reserva -->
+                        <button class="btn btn-primary mt-auto" id="update-btn">Actualizar Reserva</button>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <h2>Error: Reserva no encontrada.</h2>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // Script para manejar la actualización de la reserva
+        $('#update-btn').on('click', function () {
+            var time_slot = $('#timeSlotSelect option:selected').val();
+            var reserva_id = '{{ reserva.id }}';
+
+            if (time_slot) {
+                $.ajax({
+                    url: '{% url "editar" reserva.id %}',
+                    type: 'POST',
+                    data: {
+                        'time_slot': time_slot,
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    },
+                    success: function (response) {
+                        console.log('Respuesta de reserva:', response);
+                            if (response.success) {
+                                alert('Reserva actualizada con éxito. ID de reserva: ' + response.reservation_id);
+                                location.reload();
+                            } else {
+                                alert('No se pudo realizar la reserva: ' + response.error);
+                            }  // Redirige a una página de éxito
+                    },
+                    error: function (xhr, status, error) {
+                        alert('Error al actualizar la reserva.');
+                    }
+                });
+            } else {
+                alert('Por favor, selecciona un horario.');
+            }
+        });
+    </script>
+
+</body>
+
+{% endblock content %}

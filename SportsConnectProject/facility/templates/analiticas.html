@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <div class="card text-center mb-3">
+        <div class="card-body">
+            <h1 class="card-title">Análisis de datos</h1>
+        </div>
+    </div>
+
+    <!-- Crear una fila para las imágenes -->
+    <div class="row justify-content-center">
+        <!-- Primera imagen: gráfico de barras -->
+        <div class="col-sm-6 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <img src="data:image/png;base64, {{graphic}}" alt="Grafico de Barras" class="img-fluid">
+                </div>
+            </div>
+        </div>
+
+        <!-- Segunda imagen: gráfico de pastel -->
+        <div class="col-sm-6 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <img src="data:image/png;base64, {{pastel}}" alt="Grafico de Pastel" class="img-fluid">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -19,7 +19,7 @@
                             <h6>Recuerda tu número de reserva es el #{{ reserva.id }}</h6>
                             <h6>Hora: {{ reserva.availability.time_slot }} hrs.</h6>
                             <p>¿Estás listo para llevar tu entrenamiento al siguiente nivel? Nuestro espacio deportivo te ofrece todo lo que necesitas para superar tus límites.</p>
-                            <button type="button" class="btn" style="background-color: #000053; color: #ffffff;">Editar</button>
+                            <a type="button" class="btn" href="{% url 'editar' reserva.id %}" style="background-color: #000053; color: #ffffff;">Editar</a>
                             <button type="button" data-reservation-id="{{ reserva.id }}" class="btn btn-danger cancel-reservation-btn ms-2">Cancelar Reserva</button>
                         </div>
                     </div>

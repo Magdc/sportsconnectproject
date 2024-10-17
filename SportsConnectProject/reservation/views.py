@@ -254,3 +254,40 @@ def reserva_confirmacion(request, user_email, facility_name, reservation_date, t
     
     return send_email(user_email, subject, message)
 
+
+
+@login_required
+def editarReserva(request, reserva_id):
+    user = request.user.idUser
+    # Buscar la reserva específica
+    try:
+        reserva = Reservation.objects.get(id=reserva_id, idUser=user)
+    except Reservation.DoesNotExist:
+        return render(request, 'error.html', {'mensaje': 'Reserva no encontrada.'})
+
+    # Obtener los horarios disponibles para la fecha y espacio de la reserva
+    horarios_disponibles = Availability.objects.filter(date=reserva.availability.date, facilities=reserva.facilities,is_restricted=False).order_by('time_slot')
+    reserved_slots = Reservation.objects.filter(availability__facilities_id=reserva.facilities,date=reserva.availability.date).values_list('availability__time_slot', flat=True)
+    available_slots = horarios_disponibles.exclude(time_slot__in=reserved_slots).distinct()
+
+
+    if request.method == 'POST':      
+        # Obtener el nuevo horario seleccionado del formulario
+        nuevo_horario_id = request.POST.get('time_slot')
+        try:
+            nuevo_horario = Availability.objects.get(id=nuevo_horario_id)
+        except Availability.DoesNotExist:
+            return render(request, 'error.html', {'mensaje': 'Horario no válido.'})
+
+        # Actualizar la reserva con el nuevo horario
+        reserva.availability = nuevo_horario
+        reserva.save()
+
+        # Puedes redirigir a una página de éxito o mostrar un mensaje
+        return JsonResponse({'success': True})
+
+    # Si es una solicitud GET, renderizar el formulario con los horarios disponibles
+    return render(request, 'editar.html', {
+        'reserva': reserva,
+        'horarios_disponibles': available_slots
+    })
