@@ -6,7 +6,9 @@
 {% block content %}
 <body>
     <div class="container mt-5">
-        <div class="card text-center mb-3" style="background-color: #ffffff;">
+
+        <!-- Título principal -->
+        <div class="card text-center mb-3" style="background-color: #ffffff; border: none;">
             <div class="card-body">
                 <h1 class="card-title" style="color: #000000;">SportsConnect EAFIT</h1>
                 <p style="color: #000000;">
@@ -20,7 +22,18 @@
             </div>
         </div>
 
-        <h3 style="color: #000000;">Conoce los espacios que tenemos para ti</h3>
+        <h2 style="color: #000000; text-align: center;">Estos son los espacios que tenemos para ti</h2>
+
+        <!-- Barra de búsqueda -->
+        <form method="get" action="{% url 'home' %}" class="d-flex justify-content-center my-3">
+            <input type="text" name="search" placeholder="Busca por deporte o instalación"
+                class="form-control w-50" value="{{ search_query }}">
+            <button type="submit" class="btn btn-primary ms-2" style="background-color: #000053; border-color: #000053;">
+                Buscar
+            </button>
+        </form>
+
+        <!-- Desplegables de los espacios -->
         <div class="accordion" id="spacesAccordion">
             {% for facility_info in facilities_with_availability %}
             <div class="accordion-item">
