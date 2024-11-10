@@ -98,8 +98,7 @@
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'home' %}">
                 <img src="https://entrenos.eafit.edu.co/SiteCollectionImages/logo_eafit_completo.png" class="logo" alt="Universidad EAFIT">
-                <img src="{% static 'images/logo.png' %}" class="logosc ms-3" alt="Segundo Logo">
-                <div class="slogan">El deporte nos conecta</div>
+                
               </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -158,7 +157,30 @@
 
         <footer class="footer">
             <div class="container">
-                <p class="text-center">© 2024 SportsConnect EAFIT. Todos los derechos reservados.</p>
+              <div class="d-flex justify-content-center align-items-center" >
+                <img src="{% static 'images/logo.png' %}" class="logosc ms-3" alt="Segundo Logo">
+                
+            </div>
+            <div class="d-flex justify-content-center align-items-center" >
+              <h4 class="slogan-text">"El deporte nos conecta"</h4>
+          </div>
+          <p class="text-center">© 2024 SportsConnect EAFIT. Todos los derechos reservados.</p>
+          
+          <style>
+              .slogan-text {
+                  font-family: 'italic', sans-serif;  /* Puedes cambiarla por otra fuente si prefieres */
+                  font-size: 1.5rem;  /* Tamaño grande */
+                    /* Negrita */
+                  font-style: italic;
+                  color: #000053;  
+                  letter-spacing: 2px;  /* Espaciado entre letras */
+                  text-transform: uppercase;  /* Mayúsculas para más impacto */
+                  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);  /* Sombra para profundidad */
+                  margin: 0;
+                  padding: 20px;
+              }
+          </style
+            
             </div>
         </footer>
     </div>
