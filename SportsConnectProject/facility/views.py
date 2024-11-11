@@ -102,7 +102,9 @@ def mostrarGraficas(request):
     plt.xlabel('Fecha')
     plt.ylabel('Número de reservas')
     plt.xticks(bar_positions, reservas_porFecha.keys())
-    max_reservas = max(reservas_porFecha.values())
+    max_reservas =0
+    if max_reservas:
+     max_reservas = max(reservas_porFecha.values())
     plt.yticks(range(1, max_reservas + 1)) 
     # Ajustar el espaciado entre las barras
     plt.subplots_adjust(bottom=0.3)
@@ -129,9 +131,10 @@ def mostrarGraficas(request):
             reservas_porEspacio[espacio] += 1
         else:
             reservas_porEspacio[espacio] = 1
-    print("Segunda grafica")
-    print(reservas_porEspacio)
-    print(type(reservas_porEspacio))
+    
+    #print("Segunda grafica")
+    #print(reservas_porEspacio)
+    #print(type(reservas_porEspacio))
     
     # Extraer los nombres de los espacios y las cantidades de reservas
     espacios = reservas_porEspacio.keys()
@@ -159,7 +162,59 @@ def mostrarGraficas(request):
     pastel = base64.b64encode(image_png)
     pastel = pastel.decode('utf-8')
 
-    return render(request, 'analiticas.html',{'graphic':graphic,'pastel':pastel})
+
+        #Tercera
+        # Tercera gráfica: Boxplot de la duración de reservas por espacio
+
+    # Obtener los espacios y la duración de cada reserva en horas
+    espacios = Facilities.objects.values_list("name",flat=True)
+    horas = ['06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00']
+    espaciosConHorarios = {}
+    for espacio in espacios:
+        if espacio not in espaciosConHorarios:
+            tiempitos =[]
+            tiempos = Reservation.objects.filter(facilities__name=espacio).values_list("availability__time_slot",flat=True)
+            for tiempo in tiempos:
+
+                tiempitos.append(tiempo.hour)
+            espaciosConHorarios[espacio] = tiempitos
+    print("LA VERDADERA VUELTA")
+    print(espaciosConHorarios)
+    #cosa = Reservation.objects.values_list("facilities__name",flat=True)
+
+    # Organizar los datos en un diccionario donde las claves son los nombres de los espacios
+    # y los valores son listas de duraciones de reservas en horas
+
+    # Extraer los nombres de los espacios y las duraciones para el boxplot
+    
+    duraciones = list(espaciosConHorarios.values())
+    print("segundo intento")
+    print(duraciones)
+    # Crear la gráfica boxplot
+    plt.figure(figsize=(10, 6))
+    plt.boxplot(duraciones, labels=espacios, vert=True)
+
+    # Personalizar la gráfica
+    plt.title('Distribución de Duración de Reservas por Espacio')
+    plt.xlabel('Espacios Deportivos')
+    plt.ylabel('Duración de Reservas (horas)')
+    plt.xticks(rotation=45)  # Rotar las etiquetas en el eje X para mejor legibilidad
+
+    # Guardar la gráfica en un objeto BytesIO
+    buffer = io.BytesIO()
+    plt.savefig(buffer, format='png', bbox_inches='tight')
+    buffer.seek(0)
+    plt.close()
+
+    # Convertir la gráfica a base64
+    image_png = buffer.getvalue()
+    buffer.close()
+    boxplot = base64.b64encode(image_png)
+    boxplot = boxplot.decode('utf-8')
+
+    # Añadir la imagen al contexto para renderizar en la plantilla
+    return render(request, 'analiticas.html', {'graphic': graphic, 'pastel': pastel, 'boxplot': boxplot})
+
 
 @staff_member_required
 def eliminar_espacio(request, facility_id):
