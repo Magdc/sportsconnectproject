@@ -13,7 +13,7 @@ class Register(CreateView):
     success_url = reverse_lazy('home')
 
     def form_valid(self, form):
-        # Verificar si el email tiene el dominio eafit.edu.co
+        # verifica si el email tiene el dominio eafit.edu.co
         email = form.cleaned_data.get('email')
         if email.endswith('@eafit.edu.co'):
             form.instance.is_student = True

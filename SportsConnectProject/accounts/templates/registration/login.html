@@ -1,20 +1,56 @@
-
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Login</title>
-</head>
-
 {% extends 'base.html' %}
+{% load form_tags %}
+
+{% block title %}Iniciar Sesión{% endblock %}
+
 {% block content %}
-<body>
-    <h2>Iniciar Sesión en SportsConnect</h2>
-    <form method="post">
+<div class="container mt-5">
+    <h2 class="text-center">Iniciar Sesión en SportsConnect</h2>
+    
+    <!-- Formulario de inicio de sesión -->
+    <form method="POST" novalidate>
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Iniciar Sesión</button>
+        
+        <!-- Campo de correo electrónico -->
+        <div class="mb-3">
+            <label for="email" class="form-label">Correo Electrónico</label>
+            {{ form.username|add_class:"form-control uniform-size" }}
+        </div>
+        
+        <!-- Campo de contraseña -->
+        <div class="mb-3">
+            <label for="password" class="form-label">Contraseña</label>
+            {{ form.password|add_class:"form-control uniform-size" }}
+        </div>
+
+        <!-- Botón de inicio de sesión -->
+        <button type="submit" class="btn btn-primary w-100" style="background-color: #001f3f; border-color: #001f3f;">Iniciar Sesión</button>
     </form>
-</body>
-{% endblock content %}
-</html>
+
+    <!-- Mostrar errores de validación si los hay -->
+    {% if form.errors %}
+        <div class="mt-3">
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                <div class="alert alert-danger">{{ error }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    /* Estilo uniforme para los campos del formulario */
+    .uniform-size {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 1rem;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+</style>
+{% endblock %}

@@ -1,18 +1,87 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Registrarse</title>
-</head>
 {% extends 'base.html' %}
+{% load form_tags %}
+
+{% block title %}Registro{% endblock %}
+
 {% block content %}
 <div class="container mt-5">
-    <h2>Registrarse en SportsConnect</h2>
-    <form method="post">
+    <h2 class="text-center">Registro de Usuario</h2>
+    
+    <!-- Formulario de registro -->
+    <form method="POST" novalidate>
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn" style="background-color: #000053; color: #ffffff;">Registrarse</button>
+        
+        <!-- Campo de correo electrónico -->
+        <div class="mb-3">
+            <label for="email" class="form-label">Correo Electrónico</label>
+            {{ form.email|add_class:"form-control uniform-size" }}
+        </div>
+        
+        <!-- Campo de nombre -->
+        <div class="mb-3">
+            <label for="first_name" class="form-label">Nombre</label>
+            {{ form.first_name|add_class:"form-control uniform-size" }}
+        </div>
+        
+        <!-- Campo de primer apellido -->
+        <div class="mb-3">
+            <label for="last_name" class="form-label">Primer Apellido</label>
+            {{ form.last_name|add_class:"form-control uniform-size" }}
+        </div>
+        
+        <!-- Campo de segundo apellido -->
+        <div class="mb-3">
+            <label for="last_name2" class="form-label">Segundo Apellido (Opcional)</label>
+            {{ form.last_name2|add_class:"form-control uniform-size" }}
+        </div>
+        
+        <!-- Campo de teléfono -->
+        <div class="mb-3">
+            <label for="phone" class="form-label">Teléfono (Opcional)</label>
+            {{ form.phone|add_class:"form-control uniform-size" }}
+        </div>
+        
+        <!-- Campo de contraseña -->
+        <div class="mb-3">
+            <label for="password1" class="form-label">Contraseña</label>
+            {{ form.password1|add_class:"form-control uniform-size" }}
+            <div class="form-text">La contraseña debe tener al menos 8 caracteres.</div>
+        </div>
+        
+        <!-- Confirmación de contraseña -->
+        <div class="mb-3">
+            <label for="password2" class="form-label">Confirmar Contraseña</label>
+            {{ form.password2|add_class:"form-control uniform-size" }}
+        </div>
+
+        <!-- Botón de registro -->
+        <button type="submit" class="btn btn-primary w-100" style="background-color: #001f3f; border-color: #001f3f;">Registrarse</button>
     </form>
+
+    <!-- Mostrar errores de validación si los hay -->
+    {% if form.errors %}
+        <div class="mt-3">
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                <div class="alert alert-danger">{{ error }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
 </div>
-{% endblock content %}
-</html>
+
+<style>
+    /* Estilo uniforme para los campos del formulario */
+    .uniform-size {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 1rem;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+</style>
+{% endblock %}

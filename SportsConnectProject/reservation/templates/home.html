@@ -64,6 +64,8 @@
 
                                 {% if user.is_authenticated %}
                                     <button class="btn btn-primary mt-auto reserve-btn" style="background-color: #000053; border-color: #000053;" data-id-facility="{{ facility_info.facility.idFacility }}">Reservar</button>
+                                {% else %}
+                                    <a href="{% url 'login' %}" class="btn btn-primary mt-auto" style="background-color: #000053; border-color: #000053;">Inicia Sesión para Reservar</a>
                                 {% endif %}
                             </div>
                         </div>
