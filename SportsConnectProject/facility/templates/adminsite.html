@@ -75,9 +75,6 @@
                         {% for user in users %}
                             <li class="list-group-item d-flex justify-content-between align-items-center" style="font-family: 'Helvetica', sans-serif;">
                                 {{ user.first_name }} {{ user.last_name }} ({{ user.email }})
-                                <div>
-                                    <button class="btn btn-danger btn-sm" disabled>Eliminar</button>
-                                </div>
                             </li>
                         {% endfor %}
                     </ul>
