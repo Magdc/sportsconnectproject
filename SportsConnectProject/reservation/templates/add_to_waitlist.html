@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-3">
+    <h1>Añadido a la Lista de Espera</h1>
+    <p>Has sido exitosamente añadido a la lista de espera. Te notificaremos cuando un espacio esté disponible.</p>
+    <a href="{% url 'home' %}" class="btn btn-primary">Volver al inicio</a>
+</div>
+{% endblock %}

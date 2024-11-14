@@ -17,9 +17,11 @@ from dotenv import load_dotenv
 from email.mime.text import MIMEText
 from django.http import HttpResponse
 from django.contrib.admin.views.decorators import staff_member_required
-from reservation.models import Facilities, Reservation
+from reservation.models import Facilities, Reservation, WaitList
 from accounts.models import User
 from django.db.models import Q
+from django.contrib import messages
+from datetime import datetime
 
 #Método para mostrar la página principal
 def home(request):
@@ -197,45 +199,51 @@ def delete_reservation_historial(request):
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
-# Método para enviar correos electrónicos de confirmación de reserva
+# Cargar variables del archivo .env
 load_dotenv()
 
-# Ruta a las credenciales y token de Google
-CREDENTIALS_FILE = os.getenv('GOOGLE_CREDENTIALS_PATH')  
-TOKEN_FILE = os.getenv('GOOGLE_TOKEN_PATH') 
-
-# Scopes para enviar correos
-SCOPES = ['https://www.googleapis.com/auth/gmail.send']
+# Scopes requeridos
+SCOPES = os.getenv('GOOGLE_SCOPES').split(',')
 
 def gmail_authenticate():
-    creds = None
-    if os.path.exists(TOKEN_FILE):
-        creds = Credentials.from_authorized_user_file(TOKEN_FILE, SCOPES)
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_FILE, SCOPES)
-            creds = flow.run_local_server(port=8080)
-        with open(TOKEN_FILE, 'w') as token_file:
-            token_file.write(creds.to_json())
+
+    client_id = os.getenv('GOOGLE_CLIENT_ID')
+    client_secret = os.getenv('GOOGLE_CLIENT_SECRET')
+    refresh_token = os.getenv('GOOGLE_REFRESH_TOKEN')
+    access_token = os.getenv('GOOGLE_ACCESS_TOKEN')  
+    token_uri = os.getenv('GOOGLE_TOKEN_URI')
+    
+    creds = Credentials(
+        token=access_token,
+        refresh_token=refresh_token,
+        token_uri=token_uri,
+        client_id=client_id,
+        client_secret=client_secret,
+        scopes=SCOPES,
+    )
+
+    if creds.expired or not creds.valid:
+        creds.refresh(Request())
+
     return creds
 
 def send_email(user_email, subject, message):
+
     creds = gmail_authenticate()
     service = build('gmail', 'v1', credentials=creds)
-    
+
+    # Crear el mensaje MIME
     message_mime = MIMEText(message)
     message_mime['to'] = user_email
     message_mime['subject'] = subject
     raw = base64.urlsafe_b64encode(message_mime.as_bytes()).decode()
 
-    message = {'raw': raw}
+    # Enviar el correo
     try:
-        message = service.users().messages().send(userId="me", body=message).execute()
-        return HttpResponse('Correo enviado correctamente')
+        sent_message = service.users().messages().send(userId="me", body={'raw': raw}).execute()
+        return f"Correo enviado correctamente: ID {sent_message['id']}"
     except Exception as e:
-        return HttpResponse(f'Error enviando el correo: {str(e)}')
+        return f"Error enviando el correo: {str(e)}"
 
 def reserva_confirmacion(request, user_email, facility_name, reservation_date, time_slot):
     subject = "Confirmación de reserva en EAFIT"
@@ -257,8 +265,6 @@ def reserva_confirmacion(request, user_email, facility_name, reservation_date, t
     """
     
     return send_email(user_email, subject, message)
-
-
 
 @login_required
 def editarReserva(request, reserva_id):
@@ -295,3 +301,61 @@ def editarReserva(request, reserva_id):
         'reserva': reserva,
         'horarios_disponibles': available_slots
     })
+    
+@login_required
+
+def add_to_waitlist(request, facility_id):
+    if request.method == 'POST':
+        print(request.POST)  # Esto mostrará todos los datos recibidos del formulario en la consola.
+        date_str = request.POST.get('date')
+        user = request.user
+        date_str = request.POST.get('date')  # Obteniendo la cadena de fecha del formulario
+        print('Fecha recibida:', date_str)
+        facility = get_object_or_404(Facilities, pk=facility_id)
+
+        # Asegúrate de que 'date_str' no sea None o vacío
+        if date_str:
+            try:
+                date = datetime.strptime(date_str, '%Y-%m-%d').date()  # Ajusta el formato '%Y-%m-%d' según sea necesario
+            except ValueError:
+                messages.error(request, "Formato de fecha inválido.")
+                print("Formato de fecha inválido.")
+                return redirect('home')
+
+            # Ahora 'date' es un objeto de tipo datetime.date y se puede comparar correctamente
+            if date >= datetime.now().date():
+                new_waitlist_entry = WaitList(user=user, facilities=facility, date=date)
+                new_waitlist_entry.save()
+
+                WaitList_confirmacion(request, user.email, facility.name, date=date)
+                messages.success(request, "Añadido a la lista de espera exitosamente.")
+                return render(request, 'add_to_waitlist.html', {'facility': facility})
+            else:
+                print("No puedes añadirte a la lista de espera para fechas pasadas.")
+                messages.error(request, "No puedes añadirte a la lista de espera para fechas pasadas.")
+
+            return redirect('home')
+        else:
+            print("No se proporcionó una fecha.")
+            messages.error(request, "No se proporcionó una fecha.")
+            return redirect('home')
+
+def WaitList_confirmacion(request, user_email, facility_name, date):
+    subject = "LISTA DE ESPERA EAFIT"
+    
+    message = f"""
+    Estimado {request.user.first_name},
+
+    Ha sido incluido en la Waitlist.
+
+    Detalles del espacio que esta esperando:
+    - Espacio esperado: {facility_name}
+    - Fecha esperada: {date}  
+    
+    ¡Gracias por usar nuestro servicio!
+
+    Atentamente,
+    El equipo de SportsConnect
+    """
+    
+    return send_email(user_email, subject, message)

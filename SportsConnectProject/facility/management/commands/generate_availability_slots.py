@@ -1,32 +1,47 @@
 from django.core.management.base import BaseCommand
-from reservation.models import Availability
-from datetime import time
+from reservation.models import Availability, WaitList
+from facility.models import Facilities
+from datetime import time, timedelta, datetime
+from django.core.mail import send_mail
+from django.utils import timezone
 
 class Command(BaseCommand):
-    help = 'Assign time slots to existing Availability entries'
+    help = 'Assign time slots to existing Availability entries and notify waitlisted users'
 
     def handle(self, *args, **kwargs):
-        # Iterar sobre todas las entradas existentes en Availability
-        availabilities = Availability.objects.all()
+        today = timezone.now().date()
+        future_date = today + timedelta(days=7)  # Assumption of 7 days ahead scheduling
+        facilities = Facilities.objects.all()
 
-        for availability in availabilities:
+        for facility in facilities:
+            availabilities = Availability.objects.filter(facilities=facility, date=future_date)
+
             # Verificar si los horarios ya existen para evitar duplicados
-            existing_slots = Availability.objects.filter(
-                facilities=availability.facilities,
-                date=availability.date
-            ).values_list('time_slot', flat=True)
+            existing_slots = set(availabilities.values_list('time_slot', flat=True))
 
             start_hour = 5
-            end_hour = 21  # 5pm in 24-hour format
+            end_hour = 21 
 
-            # Crear los horarios faltantes
             for hour in range(start_hour, end_hour + 1):
                 time_slot = time(hour=hour)
                 if time_slot not in existing_slots:
                     Availability.objects.create(
-                        facilities=availability.facilities,
-                        date=availability.date,
+                        facilities=facility,
+                        date=future_date,
                         time_slot=time_slot
                     )
-        
-        self.stdout.write(self.style.SUCCESS('Successfully assigned time slots to all existing Availability entries'))
+
+            waitlist_entries = WaitList.objects.filter(facilities=facility, date=future_date)
+            for entry in waitlist_entries:
+                
+                send_mail(
+                    'Horarios Disponibles',
+                    f'Los horarios para {facility.name} el {future_date} están ahora disponibles. Puedes hacer tu reserva.',
+                    'from@example.com',
+                    [entry.user.email],
+                    fail_silently=False,
+                )
+            
+                entry.delete()
+
+        self.stdout.write(self.style.SUCCESS('Successfully assigned time slots and notified waitlisted users.'))
