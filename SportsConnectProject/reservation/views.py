@@ -306,7 +306,6 @@ def editarReserva(request, reserva_id):
 
 def add_to_waitlist(request, facility_id):
     if request.method == 'POST':
-        print(request.POST)  # Esto mostrará todos los datos recibidos del formulario en la consola.
         date_str = request.POST.get('date')
         user = request.user
         date_str = request.POST.get('date')  # Obteniendo la cadena de fecha del formulario
