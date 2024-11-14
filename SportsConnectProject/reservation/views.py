@@ -303,25 +303,20 @@ def editarReserva(request, reserva_id):
     })
     
 @login_required
-
 def add_to_waitlist(request, facility_id):
     if request.method == 'POST':
         date_str = request.POST.get('date')
         user = request.user
-        date_str = request.POST.get('date')  # Obteniendo la cadena de fecha del formulario
-        print('Fecha recibida:', date_str)
+        date_str = request.POST.get('date') 
         facility = get_object_or_404(Facilities, pk=facility_id)
 
-        # Asegúrate de que 'date_str' no sea None o vacío
         if date_str:
             try:
-                date = datetime.strptime(date_str, '%Y-%m-%d').date()  # Ajusta el formato '%Y-%m-%d' según sea necesario
+                date = datetime.strptime(date_str, '%Y-%m-%d').date()  
             except ValueError:
                 messages.error(request, "Formato de fecha inválido.")
-                print("Formato de fecha inválido.")
                 return redirect('home')
 
-            # Ahora 'date' es un objeto de tipo datetime.date y se puede comparar correctamente
             if date >= datetime.now().date():
                 new_waitlist_entry = WaitList(user=user, facilities=facility, date=date)
                 new_waitlist_entry.save()
@@ -340,7 +335,7 @@ def add_to_waitlist(request, facility_id):
             return redirect('home')
 
 def WaitList_confirmacion(request, user_email, facility_name, date):
-    subject = "LISTA DE ESPERA EAFIT"
+    subject = "SUSCRIPCIÓN A LISTA DE ESPERA EAFIT"
     
     message = f"""
     Estimado {request.user.first_name},
