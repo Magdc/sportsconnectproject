@@ -172,8 +172,6 @@ def historial(request):
     fechahoy = datetime.now()
     activas = reservas.filter(date__gte=fechahoy)
     vencidas= reservas.filter(date__lt=fechahoy)
-    for i in reservas:
-        print(reservas)
     return render(request, 'historial.html',{"activas":activas,"vencidas":vencidas})
 
 # Método de prueba para eliminar la reserva desde el historial sin pedir ID de reserva
