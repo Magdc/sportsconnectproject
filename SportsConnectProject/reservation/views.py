@@ -325,12 +325,10 @@ def add_to_waitlist(request, facility_id):
                 messages.success(request, "Añadido a la lista de espera exitosamente.")
                 return render(request, 'add_to_waitlist.html', {'facility': facility})
             else:
-                print("No puedes añadirte a la lista de espera para fechas pasadas.")
                 messages.error(request, "No puedes añadirte a la lista de espera para fechas pasadas.")
 
             return redirect('home')
         else:
-            print("No se proporcionó una fecha.")
             messages.error(request, "No se proporcionó una fecha.")
             return redirect('home')
 
