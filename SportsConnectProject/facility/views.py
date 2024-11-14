@@ -87,8 +87,6 @@ def mostrarGraficas(request):
             reservas_porFecha[date] += 1
         else:
            reservas_porFecha[date] = 1
-    print(reservas_porFecha)
-    print(type(reservas_porFecha))
     # Ancho de las barras
     bar_width = 0.5 
     # Separación entre las barras
@@ -102,9 +100,8 @@ def mostrarGraficas(request):
     plt.xlabel('Fecha')
     plt.ylabel('Número de reservas')
     plt.xticks(bar_positions, reservas_porFecha.keys())
-    max_reservas =0
-    if max_reservas:
-     max_reservas = max(reservas_porFecha.values())
+
+    max_reservas = max(reservas_porFecha.values())
     plt.yticks(range(1, max_reservas + 1)) 
     # Ajustar el espaciado entre las barras
     plt.subplots_adjust(bottom=0.3)
@@ -178,8 +175,7 @@ def mostrarGraficas(request):
 
                 tiempitos.append(tiempo.hour)
             espaciosConHorarios[espacio] = tiempitos
-    print("LA VERDADERA VUELTA")
-    print(espaciosConHorarios)
+
     #cosa = Reservation.objects.values_list("facilities__name",flat=True)
 
     # Organizar los datos en un diccionario donde las claves son los nombres de los espacios
@@ -188,8 +184,7 @@ def mostrarGraficas(request):
     # Extraer los nombres de los espacios y las duraciones para el boxplot
     
     duraciones = list(espaciosConHorarios.values())
-    print("segundo intento")
-    print(duraciones)
+
     # Crear la gráfica boxplot
     plt.figure(figsize=(10, 6))
     plt.boxplot(duraciones, labels=espacios, vert=True)
