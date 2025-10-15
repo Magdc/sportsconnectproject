@@ -16,7 +16,7 @@ slots, make reservations, and manage their bookings for various sports facilitie
 
 ## How to run this code
 Go to the directory on your local machine where you are going to download the repository.
-Write `git clone https://github.com/ACarmona4/sportsconnectproject` in the terminal.
+Write `git clone https://github.com/Magdc/sportsconnectproject` in the terminal.
 Then, go to the folder where you cloned it, and then to `/SportsConnectProject`.
 You can install all the requirements by typing `pip install -r requirements.txt` on your terminal.
 Once you are here, you only need to type `python manage.py runserver` in the terminal', now you are all set!.
