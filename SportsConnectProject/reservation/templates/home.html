@@ -52,6 +52,35 @@
                                 <h4 style="color: #000000;">Descripción:</h4>
                                 <p style="color: #000000;">{{ facility_info.facility.description }}</p>
 
+                                {% if facility_info.facility.rating_stats %}
+                                <div class="mb-3">
+                                    <span class="text-warning" style="font-size: 1.2rem;">
+                                        {{ facility_info.facility.rating_stats.average_rating }}★
+                                    </span>
+                                    <small class="text-muted">
+                                        ({{ facility_info.facility.rating_stats.total_ratings }} calificación{% if facility_info.facility.rating_stats.total_ratings != 1 %}es{% endif %})
+                                    </small>
+                                    <a href="{% url 'rating:facility_ratings' facility_info.facility.idFacility %}" class="btn btn-sm btn-link">Ver reseñas</a>
+                                </div>
+                                {% else %}
+                                <div class="mb-3">
+                                    <small class="text-muted">Sin calificaciones aún</small>
+                                </div>
+                                {% endif %}
+                                
+                                <!-- Botón para Calificar Espacio -->
+                                <div class="mb-3">
+                                    {% if user.is_authenticated %}
+                                        <a href="{% url 'rating:facility_ratings' facility_info.facility.idFacility %}" class="btn btn-outline-warning btn-sm">
+                                            ⭐ Calificar este espacio
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'login' %}?next={% url 'rating:facility_ratings' facility_info.facility.idFacility %}" class="btn btn-outline-warning btn-sm">
+                                            ⭐ Inicia sesión para calificar
+                                        </a>
+                                    {% endif %}
+                                </div>
+
                                 <label for="datePicker_{{ facility_info.facility.idFacility }}" class="form-label" style="color: #000000;">Seleccionar Fecha</label>
                                 <input type="text" class="form-control datePicker" id="datePicker_{{ facility_info.facility.idFacility }}" data-id-facility="{{ facility_info.facility.idFacility }}" placeholder="Seleccionar una fecha">
 

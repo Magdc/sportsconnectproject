@@ -81,6 +81,105 @@
                 </div>
             </div>
         </div>
+
+        <!-- Desplegable para Estadísticas de Calificaciones -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingFour">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour" style="font-family: 'Helvetica', sans-serif; font-weight: bold;">
+                    📊 Estadísticas de Calificaciones
+                </button>
+            </h2>
+            <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#accordionExample">
+                <div class="accordion-body">
+                    <!-- Resumen Global -->
+                    <div class="card mb-3" style="background-color: #f8f9fa;">
+                        <div class="card-body">
+                            <h5 class="card-title" style="font-family: 'Helvetica', sans-serif; font-weight: bold;">Resumen Global</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Total de Calificaciones:</strong> {{ total_ratings }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Promedio Global:</strong> 
+                                        <span class="text-warning" style="font-size: 1.3rem;">{{ avg_rating_global }}★</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estadísticas por Espacio -->
+                    <h6 style="font-family: 'Helvetica', sans-serif; font-weight: bold;">Calificaciones por Espacio</h6>
+                    {% if rating_stats %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Espacio</th>
+                                        <th>Promedio</th>
+                                        <th>Total Calificaciones</th>
+                                        <th>Última Actualización</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for stat in rating_stats %}
+                                    <tr>
+                                        <td style="font-weight: bold;">{{ stat.facility.name }}</td>
+                                        <td>
+                                            <span class="text-warning" style="font-size: 1.1rem;">
+                                                {{ stat.average_rating }}★
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary">{{ stat.total_ratings }}</span>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ stat.last_updated|date:"d/m/Y H:i" }}</small>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'rating:facility_ratings' stat.facility.idFacility %}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                Ver Reseñas
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info" role="alert">
+                            <strong>Sin datos:</strong> Aún no hay calificaciones en el sistema.
+                        </div>
+                    {% endif %}
+
+                    <!-- Espacios sin Calificaciones -->
+                    <h6 class="mt-4" style="font-family: 'Helvetica', sans-serif; font-weight: bold;">Espacios sin Calificaciones</h6>
+                    {% with unrated_facilities=facilities|length rated_count=rating_stats|length %}
+                        {% if unrated_facilities > rated_count %}
+                            <div class="alert alert-warning" role="alert">
+                                <strong>Atención:</strong> Hay {{ unrated_facilities|add:"-"|add:rated_count }} espacio(s) sin calificaciones aún.
+                            </div>
+                            <ul class="list-group">
+                                {% for facility in facilities %}
+                                    {% if not facility.rating_stats %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            {{ facility.name }}
+                                            <span class="badge bg-secondary">Sin calificaciones</span>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <div class="alert alert-success" role="alert">
+                                ✅ Todos los espacios tienen al menos una calificación.
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

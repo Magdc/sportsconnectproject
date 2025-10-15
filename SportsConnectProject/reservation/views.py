@@ -1,27 +1,27 @@
 import os
 import base64
+from reservation.notification_services import NotificationService, ConsoleNotificationService, EmailNotificationService
+from .notification_factory import get_notification_service
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import JsonResponse
-from .models import Facilities, Availability, Reservation
+from django.http import JsonResponse, HttpResponse
+# Import models from the correct apps
+from facility.models import Facilities, Availability
+from reservation.models import Reservation, WaitList
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 import json
-from datetime import timedelta
+from datetime import timedelta, datetime
 from django.utils import timezone
-from datetime import datetime
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from dotenv import load_dotenv
 from email.mime.text import MIMEText
-from django.http import HttpResponse
 from django.contrib.admin.views.decorators import staff_member_required
-from reservation.models import Facilities, Reservation, WaitList
 from accounts.models import User
 from django.db.models import Q
 from django.contrib import messages
-from datetime import datetime
 
 #Método para mostrar la página principal
 def home(request):
@@ -60,7 +60,8 @@ def get_availability_by_date(request):
         facility = Facilities.objects.get(idFacility=idFacility)
         for i in range(7):
             date_to_check = today + timedelta(days=i)
-            for time_slot in Availability.generate_time_slots(self=facility):
+            # generate_time_slots is an instance method on Availability; call it on a temporary instance
+            for time_slot in Availability().generate_time_slots():
                 # Crear disponibilidad si no existe ya
                 Availability.objects.get_or_create(facilities=facility, date=date_to_check, time_slot=time_slot)
 
@@ -200,17 +201,22 @@ def delete_reservation_historial(request):
 # Cargar variables del archivo .env
 load_dotenv()
 
-# Scopes requeridos
-SCOPES = os.getenv('GOOGLE_SCOPES').split(',')
+# Scopes requeridos (proteger contra variable de entorno ausente)
+_SCOPES_ENV = os.getenv('GOOGLE_SCOPES')
+SCOPES = _SCOPES_ENV.split(',') if _SCOPES_ENV else []
 
 def gmail_authenticate():
-
+    # Leer variables de entorno necesarias
     client_id = os.getenv('GOOGLE_CLIENT_ID')
     client_secret = os.getenv('GOOGLE_CLIENT_SECRET')
     refresh_token = os.getenv('GOOGLE_REFRESH_TOKEN')
-    access_token = os.getenv('GOOGLE_ACCESS_TOKEN')  
+    access_token = os.getenv('GOOGLE_ACCESS_TOKEN')
     token_uri = os.getenv('GOOGLE_TOKEN_URI')
-    
+
+    # Si faltan datos esenciales no intentamos autenticar con la API de Gmail
+    if not (refresh_token and token_uri and client_id and client_secret):
+        return None
+
     creds = Credentials(
         token=access_token,
         refresh_token=refresh_token,
@@ -220,32 +226,40 @@ def gmail_authenticate():
         scopes=SCOPES,
     )
 
-    if creds.expired or not creds.valid:
-        creds.refresh(Request())
+    try:
+        if creds.expired or not creds.valid:
+            creds.refresh(Request())
+    except Exception:
+        # No se pudo refrescar; devolver None para que el llamador lo maneje
+        return None
 
     return creds
 
 def send_email(user_email, subject, message):
-
     creds = gmail_authenticate()
-    service = build('gmail', 'v1', credentials=creds)
+    if not creds:
+        # No hay configuración OAuth completa; no intentar enviar el correo
+        # En desarrollo se puede usar el backend de consola (EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend')
+        return "No se envió el correo: Google OAuth no está configurado correctamente."
 
-    # Crear el mensaje MIME
-    message_mime = MIMEText(message)
-    message_mime['to'] = user_email
-    message_mime['subject'] = subject
-    raw = base64.urlsafe_b64encode(message_mime.as_bytes()).decode()
-
-    # Enviar el correo
     try:
-        sent_message = service.users().messages().send(userId="me", body={'raw': raw}).execute()
-        return f"Correo enviado correctamente: ID {sent_message['id']}"
-    except Exception as e:
-        return f"Error enviando el correo: {str(e)}"
+        service = build('gmail', 'v1', credentials=creds)
 
-def reserva_confirmacion(request, user_email, facility_name, reservation_date, time_slot):
+        # Crear el mensaje MIME
+        message_mime = MIMEText(message)
+        message_mime['to'] = user_email
+        message_mime['subject'] = subject
+        raw = base64.urlsafe_b64encode(message_mime.as_bytes()).decode()
+
+        # Enviar el correo
+        sent_message = service.users().messages().send(userId="me", body={'raw': raw}).execute()
+        return f"Correo enviado correctamente: ID {sent_message.get('id')}"
+    except Exception as e:
+        # No propagamos la excepción: devolvemos un mensaje para registro/feedback
+        return f"Error enviando el correo: {str(e)}"
+
+def reserva_confirmacion(request, user_email, facility_name, reservation_date, time_slot, notification_service=None):
     subject = "Confirmación de reserva en EAFIT"
-    
     message = f"""
     Estimado {request.user.first_name},
 
@@ -261,8 +275,10 @@ def reserva_confirmacion(request, user_email, facility_name, reservation_date, t
     Atentamente,
     El equipo de SportsConnect
     """
-    
-    return send_email(user_email, subject, message)
+    if notification_service is None:
+        # Strategy + Factory: selecciona la implementación adecuada según configuración/entorno
+        notification_service = get_notification_service(email_sender=send_email)
+    return notification_service.send(user_email, subject, message)
 
 @login_required
 def editarReserva(request, reserva_id):
@@ -330,9 +346,8 @@ def add_to_waitlist(request, facility_id):
             messages.error(request, "No se proporcionó una fecha.")
             return redirect('home')
 
-def WaitList_confirmacion(request, user_email, facility_name, date):
+def WaitList_confirmacion(request, user_email, facility_name, date, notification_service=None):
     subject = "SUSCRIPCIÓN A LISTA DE ESPERA EAFIT"
-    
     message = f"""
     Estimado {request.user.first_name},
 
@@ -347,5 +362,7 @@ def WaitList_confirmacion(request, user_email, facility_name, date):
     Atentamente,
     El equipo de SportsConnect
     """
-    
-    return send_email(user_email, subject, message)
+    if notification_service is None:
+        # Strategy + Factory: selecciona la implementación adecuada según configuración/entorno
+        notification_service = get_notification_service(email_sender=send_email)
+    return notification_service.send(user_email, subject, message)

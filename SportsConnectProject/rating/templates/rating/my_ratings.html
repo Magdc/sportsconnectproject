@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Mis Calificaciones</h2>
+            
+            {% if ratings %}
+                <div class="row">
+                    {% for rating in ratings %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ rating.facility.name }}</h5>
+                                <div class="mb-2">
+                                    <span class="text-warning">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= rating.stars %}★{% else %}☆{% endif %}
+                                        {% endfor %}
+                                    </span>
+                                </div>
+                                {% if rating.comment %}
+                                <p class="card-text">{{ rating.comment|truncatewords:20 }}</p>
+                                {% endif %}
+                                <small class="text-muted">{{ rating.created_at|date:"d/m/Y" }}</small>
+                                <div class="mt-2">
+                                    <a href="{% url 'rating:view_rating' rating.id %}" class="btn btn-sm btn-primary">Ver</a>
+                                    <a href="{% url 'rating:edit_rating' rating.id %}" class="btn btn-sm btn-secondary">Editar</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted">Aún no has calificado ningún espacio.</p>
+                <a href="{% url 'Historial' %}" class="btn btn-primary">Ver Historial de Reservas</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

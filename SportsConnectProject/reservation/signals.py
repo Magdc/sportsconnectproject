@@ -1,25 +1,33 @@
-"""from django.db.models.signals import post_save
+from django.db.models.signals import post_delete
 from django.dispatch import receiver
-from .models import Availability, Facilities
-from datetime import time, timedelta
 from django.utils import timezone
+from .models import Reservation, WaitList
+from .notification_factory import get_notification_service
+from .views import send_email
 
-@receiver(post_save, sender=Facilities)
-def assign_time_slots(sender, instance, created, **kwargs):
-    if created:
-        # Crear horarios desde las 5am hasta las 9pm para el día asociado
-        start_hour = 5
-        end_hour = 21  
-        days_to_generate = 7  # Generar slots para los próximos 7 días
+@receiver(post_delete, sender=Reservation)
+def notify_waitlist_on_cancellation(sender, instance: Reservation, **kwargs):
+    """
+    Observer pattern via Django signals: cuando se elimina una Reserva, se notifica a los usuarios
+    en la lista de espera para la misma instalación y fecha.
+    """
+    facility = instance.facilities
+    date = instance.availability.date
 
-        for day_offset in range(days_to_generate):
-            target_date = timezone.now().date() + timedelta(days=day_offset)
-            for hour in range(start_hour, end_hour + 1):
-                time_slot = time(hour=hour)
-                
-                # Verificar si el slot ya existe antes de crearlo
-                Availability.objects.get_or_create(
-                    facilities=instance,
-                    date=target_date,
-                    time_slot=time_slot
-                ) """
+    # Obtener usuarios en lista de espera para esa instalación y fecha, priorizando por fecha de solicitud
+    waiters = WaitList.objects.for_facility_on_date(facility, date)
+
+    if not waiters:
+        return
+
+    service = get_notification_service(email_sender=send_email)
+    subject = f"Cupo disponible en {facility.name}"
+    message = (
+        f"Se ha liberado un cupo para {facility.name} el {date}.\n"
+        f"Ingresa al sistema para realizar tu reserva."
+    )
+
+    for waiter in waiters:
+        user_email = getattr(waiter.user, 'email', None)
+        if user_email:
+            service.send(user_email, subject, message)

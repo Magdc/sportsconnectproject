@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Calificaciones - {{ facility.name }}</h2>
+                <a href="{% url 'home' %}" class="btn btn-secondary">Volver al inicio</a>
+            </div>
+            
+            {% if stats %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h3 class="text-warning">
+                                {{ stats.average_rating }}★
+                            </h3>
+                            <p class="text-muted">
+                                Promedio de {{ stats.total_ratings }} calificación{% if stats.total_ratings != 1 %}es{% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Sección para Calificar (solo usuarios autenticados con reservas pasadas) -->
+            {% if user.is_authenticated and can_rate_reservations %}
+            <div class="alert alert-info" role="alert">
+                <h5 class="alert-heading">¡Puedes calificar este espacio!</h5>
+                <p>Tienes {{ can_rate_reservations|length }} reserva(s) pasada(s) en este espacio que aún no has calificado.</p>
+                <hr>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for reservation in can_rate_reservations %}
+                        <a href="{% url 'rating:create_rating' reservation.id %}" class="btn btn-warning btn-sm">
+                            ⭐ Calificar reserva del {{ reservation.date }} ({{ reservation.availability.time_slot }})
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% elif user.is_authenticated %}
+            <div class="alert alert-light border" role="alert">
+                <p class="mb-0">Para calificar este espacio, primero debes hacer una reserva y completarla.</p>
+            </div>
+            {% else %}
+            <div class="alert alert-light border" role="alert">
+                <p class="mb-0">
+                    <a href="{% url 'login' %}?next={{ request.path }}" class="alert-link">Inicia sesión</a> 
+                    para poder calificar este espacio después de usarlo.
+                </p>
+            </div>
+            {% endif %}
+            
+            <h4>Comentarios de Usuarios</h4>
+            
+            {% if ratings %}
+                {% for rating in ratings %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <span class="text-warning">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= rating.stars %}★{% else %}☆{% endif %}
+                                    {% endfor %}
+                                </span>
+                                <span class="text-muted ms-2">por {{ rating.user.email }}</span>
+                            </div>
+                            <small class="text-muted">{{ rating.created_at|date:"d/m/Y" }}</small>
+                        </div>
+                        {% if rating.comment %}
+                        <p class="mt-2 mb-0">{{ rating.comment }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted">Este espacio aún no tiene calificaciones. ¡Sé el primero en calificarlo!</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

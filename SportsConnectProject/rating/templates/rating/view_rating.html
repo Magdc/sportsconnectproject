@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Calificación - {{ rating.facility.name }}</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <span class="text-warning" style="font-size: 2rem;">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= rating.stars %}★{% else %}☆{% endif %}
+                            {% endfor %}
+                        </span>
+                    </div>
+                    
+                    {% if rating.reservation %}
+                    <p><strong>Reserva:</strong> {{ rating.reservation.date }} - {{ rating.reservation.availability.time_slot }}</p>
+                    {% endif %}
+                    
+                    {% if rating.comment %}
+                    <div class="mb-3">
+                        <h5>Comentario:</h5>
+                        <p>{{ rating.comment }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <p class="text-muted">
+                        Calificado el {{ rating.created_at|date:"d/m/Y H:i" }}
+                        {% if rating.updated_at != rating.created_at %}
+                        (editado el {{ rating.updated_at|date:"d/m/Y H:i" }})
+                        {% endif %}
+                    </p>
+                    
+                    <div class="d-flex gap-2">
+                        {% if can_edit %}
+                        <a href="{% url 'rating:edit_rating' rating.id %}" class="btn btn-primary">Editar</a>
+                        {% endif %}
+                        <a href="{% url 'rating:my_ratings' %}" class="btn btn-secondary">Mis Calificaciones</a>
+                        <a href="{% url 'Historial' %}" class="btn btn-secondary">Historial</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -43,6 +43,15 @@
                         <div class="accordion-body" style="color: #000000;">
                             <h6>Número de reserva #{{ reserva.id }}</h6>
                             <p>Esperamos hayas disfrutado tu reservación, ¡no dudes en volver a reservar con nosotros!</p>
+                            {% if reserva.rating %}
+                            <a href="{% url 'rating:view_rating' reserva.rating.id %}" class="btn btn-info btn-sm">
+                                Ver mi calificación ({{ reserva.rating.stars }}★)
+                            </a>
+                            {% else %}
+                            <a href="{% url 'rating:create_rating' reserva.id %}" class="btn btn-warning btn-sm">
+                                ⭐ Calificar este espacio
+                            </a>
+                            {% endif %}
                         </div>
                     </div>
                 </div>

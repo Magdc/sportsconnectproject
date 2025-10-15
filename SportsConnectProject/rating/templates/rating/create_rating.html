@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3>{% if is_edit %}Editar{% else %}Crear{% endif %} Calificación</h3>
+                </div>
+                <div class="card-body">
+                    {% if not is_edit %}
+                    <div class="mb-3">
+                        <h5>{{ facility.name }}</h5>
+                        <p class="text-muted">
+                            Reserva: {{ reservation.date }} - {{ reservation.availability.time_slot }}
+                        </p>
+                    </div>
+                    {% endif %}
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label class="form-label">{{ form.stars.label }}</label>
+                            <div class="rating-stars">
+                                {{ form.stars }}
+                            </div>
+                            {% if form.stars.errors %}
+                                <div class="text-danger">{{ form.stars.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.comment.label }}</label>
+                            {{ form.comment }}
+                            {% if form.comment.errors %}
+                                <div class="text-danger">{{ form.comment.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                {% if is_edit %}Actualizar{% else %}Enviar{% endif %} Calificación
+                            </button>
+                            <a href="{% url 'Historial' %}" class="btn btn-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.rating-stars ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    gap: 10px;
+}
+
+.rating-stars li {
+    display: inline;
+}
+
+.rating-stars input[type="radio"] {
+    display: none;
+}
+
+.rating-stars label {
+    font-size: 2rem;
+    cursor: pointer;
+    color: #ddd;
+    transition: color 0.2s;
+}
+
+.rating-stars input[type="radio"]:checked ~ label,
+.rating-stars label:hover,
+.rating-stars label:hover ~ label {
+    color: #ffc107;
+}
+</style>
+{% endblock %}

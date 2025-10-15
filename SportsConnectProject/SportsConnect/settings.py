@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'reservation',
     'accounts',
     'facility',
+    'rating',
 ]
 
 MIDDLEWARE = [

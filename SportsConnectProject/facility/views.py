@@ -14,17 +14,30 @@ import matplotlib
 import io
 import urllib, base64
 from datetime import datetime
+from rating.models import FacilityRatingStats, Rating
+from django.db.models import Count, Avg
+
 # Create your views here.
 @staff_member_required
 def adminsite(request):
     facilities = Facilities.objects.all()
     reservas = Reservation.objects.all()
     users = User.objects.all()
+    
+    # Obtener estadísticas de calificaciones
+    rating_stats = FacilityRatingStats.objects.select_related('facility').all()
+    
+    # Calcular estadísticas generales
+    total_ratings = Rating.objects.count()
+    avg_rating_global = Rating.objects.aggregate(avg=Avg('stars'))['avg'] or 0
 
     context = {
         'facilities': facilities,
         'reservas': reservas,
-        'users': users
+        'users': users,
+        'rating_stats': rating_stats,
+        'total_ratings': total_ratings,
+        'avg_rating_global': round(avg_rating_global, 2) if avg_rating_global else 0,
     }
 
     return render(request, 'adminsite.html', context)
