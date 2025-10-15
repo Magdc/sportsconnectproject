@@ -1,8 +1,8 @@
 ## Team Members
 * Miguel Alejandro Gómez Duque
-* Alejandro Carmona Salinas
-* Sebastián Acevedo Gómez
-* Santiago Rodriguez 
+* Sebastian Castaño
+* Andres Alarcon
+  
 
 ## Development Environment
 Operating System: OS Windows 11 - MacOS Sonoma 14.6.1
