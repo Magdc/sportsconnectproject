@@ -16,7 +16,7 @@ Sistema completo de calificaciones que permite a los usuarios evaluar los espaci
 **Beneficio**: Podemos cambiar el algoritmo de cálculo sin modificar el código cliente. Se configura con la variable de entorno `RATING_CALCULATION_STRATEGY`.
 
 ```python
-# Uso:
+
 strategy = RatingCalculatorFactory.create('weighted')
 stats = strategy.calculate(ratings_data)
 ```
@@ -28,14 +28,9 @@ stats = strategy.calculate(ratings_data)
 
 ```python
 calculator = RatingCalculatorFactory.create('simple')
-# o
+
 calculator = RatingCalculatorFactory.create('weighted', decay_factor=0.9)
 ```
-
-**Beneficio**: 
-- Punto único de creación
-- Fácil extensión con nuevas estrategias
-- Configuración centralizada
 
 ### 3. Repository Pattern (RatingManager)
 **Problema**: Consultas comunes sobre calificaciones repetidas en múltiples lugares.
@@ -48,11 +43,6 @@ Rating.objects.average_for_facility(facility)  # Promedio y conteo
 Rating.objects.by_user(user)  # Calificaciones de un usuario
 ```
 
-**Beneficio**: 
-- Código más legible
-- Consultas complejas encapsuladas
-- Fácil testing
-
 ### 4. Composite Pattern (FacilityRatingStats)
 **Problema**: Necesitamos agregar múltiples Rating individuales en estadísticas consolidadas.
 
@@ -61,10 +51,6 @@ Rating.objects.by_user(user)  # Calificaciones de un usuario
 - `total_ratings`: Conteo total
 - Se actualiza automáticamente vía signals
 
-**Beneficio**: 
-- Consultas rápidas (no recalcular cada vez)
-- Separación de concerns
-- Rendimiento optimizado
 
 ### 5. Observer Pattern (signals.py)
 **Problema**: Cuando se crea/actualiza/elimina un Rating, las estadísticas deben actualizarse.
@@ -76,11 +62,6 @@ Rating.objects.by_user(user)  # Calificaciones de un usuario
 def rating_saved(sender, instance, created, **kwargs):
     update_facility_stats(instance.facility)
 ```
-
-**Beneficio**:
-- Desacoplamiento total
-- Actualización automática
-- Extensible a otros observers (emails, notificaciones, etc.)
 
 ## Arquitectura
 
@@ -129,16 +110,6 @@ python manage.py makemigrations rating
 python manage.py migrate
 ```
 
-## URLs Disponibles
-
-| URL | Vista | Descripción |
-|-----|-------|-------------|
-| `/rating/create/<reservation_id>/` | `create_rating` | Crear calificación para reserva |
-| `/rating/view/<rating_id>/` | `view_rating` | Ver detalle de calificación |
-| `/rating/edit/<rating_id>/` | `edit_rating` | Editar calificación propia |
-| `/rating/facility/<facility_id>/` | `facility_ratings` | Ver todas las calificaciones de un espacio |
-| `/rating/my-ratings/` | `my_ratings` | Mis calificaciones |
-
 ## Validaciones Implementadas
 
 1. **Ownership**: Solo el usuario que hizo la reserva puede calificarla
@@ -146,56 +117,6 @@ python manage.py migrate
 3. **Uniqueness**: Un usuario solo puede calificar una reserva una vez (unique_together)
 4. **Range**: Estrellas entre 1-5 (validators)
 5. **Edit Permission**: Solo el autor puede editar su calificación
-
-## Testing
-
-Tests unitarios para patrones Strategy y Factory:
-
-```powershell
-python manage.py test rating.tests
-```
-
-Cobertura:
-- ✅ SimpleAverageStrategy con datos y vacío
-- ✅ WeightedRecentStrategy
-- ✅ BayesianAverageStrategy
-- ✅ Factory creación de todas las estrategias
-- ✅ Factory error con estrategia inválida
-
-## Extensiones Futuras
-
-1. **Nuevas Estrategias**: Registrar más algoritmos de cálculo
-   ```python
-   RatingCalculatorFactory.register_strategy('custom', CustomStrategy)
-   ```
-
-2. **Moderación**: Signal adicional para revisar comentarios antes de publicar
-
-3. **Respuestas**: Permitir a administradores responder a calificaciones
-
-4. **Reportes**: Analytics de calificaciones por periodo, espacio, etc.
-
-5. **Gamificación**: Badges por cantidad de reseñas útiles
-
-## Beneficios del Diseño
-
-### Para el Usuario
-- Información transparente sobre la calidad de espacios
-- Feedback para mejorar el servicio
-- Comunidad y confianza
-
-### Para el Sistema
-- **Mantenibilidad**: Cambiar algoritmo sin tocar código
-- **Extensibilidad**: Agregar estrategias fácilmente
-- **Testabilidad**: Cada patrón se prueba aislado
-- **Performance**: Stats pre-calculadas, no en tiempo real
-- **Desacoplamiento**: Signals evitan dependencias directas
-
-### Para el Negocio
-- Data para decisiones (espacios más/menos valorados)
-- Identificar problemas rápidamente
-- Incentivar calidad del servicio
-- Marketing (mostrar ratings altos)
 
 ## Diagrama de Flujo
 
@@ -216,15 +137,3 @@ FacilityRatingStats actualizado
          ↓
 Rating visible en Home y página del espacio
 ```
-
-## Conclusión
-
-Este sistema de calificaciones demuestra cómo múltiples patrones de diseño trabajan juntos para crear una funcionalidad robusta, flexible y mantenible. Los patrones no se aplican por aplicar, sino que resuelven problemas reales del dominio:
-
-- **Strategy**: Flexibilidad en cálculos
-- **Factory**: Creación centralizada
-- **Repository**: Consultas reutilizables
-- **Composite**: Agregación eficiente
-- **Observer**: Actualización automática
-
-Todo documentado, testeado e integrado con el sistema existente.

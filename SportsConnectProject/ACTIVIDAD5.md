@@ -22,8 +22,3 @@ Este documento resume patrones implementados en el proyecto para mejorar manteni
 ## Cómo se activa
 - `reservation/apps.py` registra `reservation.signals` en `ready()` para que el Observer funcione cuando la app se carga.
 - Variable de entorno: `USE_EMAIL_NOTIFICATIONS=true` para activar envío de correos reales (si credenciales Google están configuradas). Caso contrario se usa consola.
-
-## Próximas mejoras sugeridas
-- Migrar vistas funcionales críticas a Class-Based Views (CBV) para mayor reutilización.
-- Añadir Decorators/Permissions específicos en CBVs y mezclar con `LoginRequiredMixin`.
-- Implementar un patrón Service Layer para operaciones de reserva complejas.
